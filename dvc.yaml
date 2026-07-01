@@ -1,0 +1,51 @@
+stages:
+  preprocess:
+    cmd: python src/preprocess.py
+    deps:
+      - src/preprocess.py
+      - data/raw/tweets_suspect.csv
+    params:
+      - preprocess
+    outs:
+      - data/processed/clean.csv
+
+  featurize:
+    cmd: python src/featurize.py
+    deps:
+      - src/featurize.py
+      - data/processed/clean.csv
+    params:
+      - featurize
+      - split
+    outs:
+      - data/processed/X_train.npz
+      - data/processed/X_test.npz
+      - data/processed/y.joblib
+      - models/vectorizer.joblib
+
+  train:
+    cmd: python src/train.py
+    deps:
+      - src/train.py
+      - data/processed/X_train.npz
+      - data/processed/y.joblib
+    params:
+      - train
+    outs:
+      - models/model.joblib
+
+  evaluate:
+    cmd: python src/evaluate.py
+    deps:
+      - src/evaluate.py
+      - data/processed/X_test.npz
+      - data/processed/y.joblib
+      - models/model.joblib
+    metrics:
+      - reports/metrics.json:
+          cache: false
+    plots:
+      - reports/figures/confusion_matrix.png:
+          cache: false
+      - reports/figures/roc_curve.png:
+          cache: false

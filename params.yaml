@@ -1,0 +1,23 @@
+# Paramètres du pipeline DVC — Détection de tweets suspects
+preprocess:
+  input: data/raw/tweets_suspect.csv
+  output: data/processed/clean.csv
+  drop_duplicates: true
+  use_stemming: true
+
+featurize:
+  max_features: 20000
+  ngram_max: 2
+  min_df: 2
+
+split:
+  test_size: 0.2
+  random_state: 42
+
+train:
+  imbalance: class_weight   # class_weight | smote | none
+  model: logistic
+  C: 10.0
+
+evaluate:
+  metrics_file: reports/metrics.json

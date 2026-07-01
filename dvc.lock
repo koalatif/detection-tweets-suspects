@@ -1,0 +1,121 @@
+schema: '2.0'
+stages:
+  preprocess:
+    cmd: python src/preprocess.py
+    deps:
+    - path: data/raw/tweets_suspect.csv
+      hash: md5
+      md5: 60e5f26c964cb0a766047fd993102170
+      size: 4695170
+      isexec: true
+    - path: src/preprocess.py
+      hash: md5
+      md5: 824f97b9e314530ffb249655798a424d
+      size: 2870
+    params:
+      params.yaml:
+        preprocess:
+          input: data/raw/tweets_suspect.csv
+          output: data/processed/clean.csv
+          drop_duplicates: true
+          use_stemming: true
+    outs:
+    - path: data/processed/clean.csv
+      hash: md5
+      md5: f60349562e8ecc673d090c4a4694603d
+      size: 2500025
+  featurize:
+    cmd: python src/featurize.py
+    deps:
+    - path: data/processed/clean.csv
+      hash: md5
+      md5: f60349562e8ecc673d090c4a4694603d
+      size: 2500025
+    - path: src/featurize.py
+      hash: md5
+      md5: 8d1bcce50f374835bd3148260c536ead
+      size: 1299
+    params:
+      params.yaml:
+        featurize:
+          max_features: 20000
+          ngram_max: 2
+          min_df: 2
+        split:
+          test_size: 0.2
+          random_state: 42
+    outs:
+    - path: data/processed/X_test.npz
+      hash: md5
+      md5: a56e95651e1e358ed9b1f5323d63831f
+      size: 904441
+    - path: data/processed/X_train.npz
+      hash: md5
+      md5: 37923e1c43c2a4c1993369d7c4e57669
+      size: 3810002
+    - path: data/processed/y.joblib
+      hash: md5
+      md5: db7adb01d3fba1ab74b08ab0841d0930
+      size: 475875
+    - path: models/vectorizer.joblib
+      hash: md5
+      md5: ebcb7826235f59d0478efe3b4d06fe44
+      size: 758713
+  train:
+    cmd: python src/train.py
+    deps:
+    - path: data/processed/X_train.npz
+      hash: md5
+      md5: 37923e1c43c2a4c1993369d7c4e57669
+      size: 3810002
+    - path: data/processed/y.joblib
+      hash: md5
+      md5: db7adb01d3fba1ab74b08ab0841d0930
+      size: 475875
+    - path: src/train.py
+      hash: md5
+      md5: 3317ef70cc17d62a16c2804213c4dca2
+      size: 1111
+    params:
+      params.yaml:
+        train:
+          imbalance: class_weight
+          model: logistic
+          C: 10.0
+    outs:
+    - path: models/model.joblib
+      hash: md5
+      md5: ba7548d773048049ef44957a867ac7af
+      size: 160879
+  evaluate:
+    cmd: python src/evaluate.py
+    deps:
+    - path: data/processed/X_test.npz
+      hash: md5
+      md5: a56e95651e1e358ed9b1f5323d63831f
+      size: 904441
+    - path: data/processed/y.joblib
+      hash: md5
+      md5: db7adb01d3fba1ab74b08ab0841d0930
+      size: 475875
+    - path: models/model.joblib
+      hash: md5
+      md5: ba7548d773048049ef44957a867ac7af
+      size: 160879
+    - path: src/evaluate.py
+      hash: md5
+      md5: e327222a94c988865f2628980dd0fad8
+      size: 2072
+    outs:
+    - path: reports/figures/confusion_matrix.png
+      hash: md5
+      md5: 3b16c680f6129339aed86f81e7216614
+      size: 22627
+    - path: reports/figures/roc_curve.png
+      hash: md5
+      md5: 7b9b6d12a0b692394fa37ec7fa6a6e4d
+      size: 34754
+    - path: reports/metrics.json
+      hash: md5
+      md5: 3c07f7ba1cb21d3fdbc8c8ff68419874
+      size: 163
