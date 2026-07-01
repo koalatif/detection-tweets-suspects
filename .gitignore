@@ -3,3 +3,7 @@ __pycache__/
 .ipynb_checkpoints/
 .venv/
 *.egg-info/
+mlruns/
+mlartifacts/
+mlflow.db
+reports/prediction_log.csv

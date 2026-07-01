@@ -92,9 +92,26 @@ et la probabilité associée.
 - **Optimisation** : GridSearch sur `C` → optimum `C=10`.
 - **Évaluation** : Accuracy, Precision, Recall, F1, matrice de confusion, courbe ROC / AUC.
 
+## ⭐ Extensions bonus
+
+- **MLflow** — suivi d'expériences en complément de DVC (`src/train_mlflow.py`).
+  Lancer : `python src/train_mlflow.py` puis `mlflow ui --backend-store-uri sqlite:///mlflow.db`.
+- **CI/CD (GitHub Actions)** — `.github/workflows/ci.yml` : lint (flake8), tests `pytest` (8 tests),
+  vérification du pipeline DVC à chaque push.
+- **Déploiement cloud** — `Dockerfile` + `DEPLOYMENT.md` (Streamlit Cloud / Hugging Face Spaces /
+  Docker / Cloud Run). Build : `docker build -t tweet-detector . && docker run -p 8501:8501 tweet-detector`.
+- **Dashboard de monitoring** — 2ᵉ page Streamlit (`app/pages/`) : suivi des prédictions,
+  distributions et **détection de dérive (drift)**.
+
+## ✅ Tests
+
+```bash
+pytest tests -v
+```
+
 ## 🛠️ Stack
 
-Python · pandas · scikit-learn · imbalanced-learn · XGBoost · NLTK · Streamlit · **DVC** · Git
+Python · pandas · scikit-learn · imbalanced-learn · XGBoost · NLTK · Streamlit · **DVC** · Git · MLflow · Docker · GitHub Actions · pytest
 
 ## 📄 Rapport
 

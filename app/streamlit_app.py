@@ -1,17 +1,27 @@
 """Partie 7 — Application Streamlit de detection de tweets suspects."""
-import os, sys, joblib
+import os, sys, joblib, csv, datetime
 import streamlit as st
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
 from preprocess import clean_text
 
 st.set_page_config(page_title="Detection de Tweets Suspects", page_icon="🐦", layout="centered")
+ROOT = os.path.join(os.path.dirname(__file__), "..")
+LOG = os.path.join(ROOT, "reports", "prediction_log.csv")
 
 @st.cache_resource
 def load_artifacts():
-    root = os.path.join(os.path.dirname(__file__), "..")
-    vec = joblib.load(os.path.join(root, "models", "vectorizer.joblib"))
-    model = joblib.load(os.path.join(root, "models", "model.joblib"))
+    vec = joblib.load(os.path.join(ROOT, "models", "vectorizer.joblib"))
+    model = joblib.load(os.path.join(ROOT, "models", "model.joblib"))
     return vec, model
+
+def log_prediction(text, cleaned, proba, pred):
+    new = not os.path.exists(LOG)
+    with open(LOG, "a", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        if new:
+            w.writerow(["timestamp", "n_chars", "n_tokens_clean", "proba_suspect", "prediction"])
+        w.writerow([datetime.datetime.now().isoformat(timespec="seconds"),
+                    len(text), len(cleaned.split()), round(proba, 4), pred])
 
 vec, model = load_artifacts()
 
@@ -35,6 +45,8 @@ if st.button("Analyser", type="primary"):
         st.progress(proba)
         with st.expander("Détails du prétraitement"):
             st.write("**Texte nettoyé :**", cleaned or "*(vide après nettoyage)*")
+        log_prediction(txt, cleaned, proba, pred)
 
 st.divider()
-st.caption("Projet ML — Pipeline reproductible géré avec Git + DVC.")
+st.caption("Projet ML — Pipeline reproductible géré avec Git + DVC. "
+           "Voir la page **Monitoring** dans la barre latérale 📊")
