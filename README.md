@@ -100,6 +100,8 @@ et la probabilité associée.
   vérification du pipeline DVC à chaque push.
 - **Déploiement cloud** — `Dockerfile` + `DEPLOYMENT.md` (Streamlit Cloud / Hugging Face Spaces /
   Docker / Cloud Run). Build : `docker build -t tweet-detector . && docker run -p 8501:8501 tweet-detector`.
+- **Transformers avancés (BERT)** — `src/train_bert.py` : embeddings Sentence-BERT
+  (`all-MiniLM-L6-v2`) + classifieur, alternative sémantique à TF-IDF.
 - **Dashboard de monitoring** — 2ᵉ page Streamlit (`app/pages/`) : suivi des prédictions,
   distributions et **détection de dérive (drift)**.
 

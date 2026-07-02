@@ -1,9 +1,29 @@
+# Python
 __pycache__/
 *.pyc
-.ipynb_checkpoints/
-.venv/
 *.egg-info/
+.ipynb_checkpoints/
+
+# Environnements virtuels (y compris ceux créés par un IDE dans un sous-dossier)
+.venv/
+**/.venv/
+env/
+venv/
+
+# MLflow (suivi d'expériences local)
 mlruns/
 mlartifacts/
 mlflow.db
+
+# Tests / caches
+.pytest_cache/
+
+# Sorties de rendu PDF (pandoc/LaTeX)
+*.tex
+*.log
+*.aux
+*.toc
+*.out
+
+# Journaux applicatifs
 reports/prediction_log.csv
