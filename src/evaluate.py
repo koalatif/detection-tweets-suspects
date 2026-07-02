@@ -1,6 +1,7 @@
 """Partie 6 — Evaluation : metriques, matrice de confusion, courbe ROC/AUC."""
+import os
+os.environ.setdefault("MPLBACKEND", "Agg")  # backend headless, avant tout import matplotlib
 import sys, json, yaml, joblib, scipy.sparse as sp
-import matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from sklearn.metrics import (accuracy_score, precision_score, recall_score,
     f1_score, roc_auc_score, roc_curve, confusion_matrix, ConfusionMatrixDisplay)

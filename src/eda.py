@@ -1,6 +1,6 @@
 """Partie 1 — Analyse exploratoire des donnees. Genere les figures dans reports/figures/."""
-import matplotlib
-matplotlib.use("Agg")
+import os
+os.environ.setdefault("MPLBACKEND", "Agg")  # backend headless, avant tout import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
