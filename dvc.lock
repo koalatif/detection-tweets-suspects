@@ -10,8 +10,8 @@ stages:
       isexec: true
     - path: src/preprocess.py
       hash: md5
-      md5: 824f97b9e314530ffb249655798a424d
-      size: 2870
+      md5: b6cb524ed879840e5e66f060dc3b0122
+      size: 2939
     params:
       params.yaml:
         preprocess:

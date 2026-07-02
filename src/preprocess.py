@@ -10,7 +10,6 @@ Opérations de nettoyage appliquées à chaque tweet :
 """
 import re
 import sys
-import yaml
 import pandas as pd
 from nltk.stem import PorterStemmer
 
@@ -50,6 +49,7 @@ def clean_text(text, use_stemming=True):
 
 
 def main(params_path="params.yaml"):
+    import yaml  # importé ici pour que clean_text reste utilisable sans PyYAML
     params = yaml.safe_load(open(params_path))["preprocess"]
     df = pd.read_csv(params["input"])
     if params.get("drop_duplicates", True):
