@@ -106,6 +106,14 @@ P("Les tweets nettoyés sont transformés par <b>TF-IDF</b> (Term Frequency – 
   "creux comme les tweets, tout en restant peu coûteux comparé aux embeddings profonds (BERT). Les "
   "bi-grammes capturent des expressions (<i>« free iphone »</i>) utiles à la détection. Une variante "
   "avancée par <b>Sentence-BERT</b> est également fournie (<font face='Courier'>src/train_bert.py</font>).")
+P("<b>Réduction de dimension (t-SNE).</b> Pour visualiser l'organisation de l'espace TF-IDF, "
+  "les vecteurs (20 000 dimensions) sont projetés en 2D via une pré-réduction <b>TruncatedSVD</b> "
+  "(50 composantes) suivie de <b>t-SNE</b>, sur un échantillon stratifié de 3 500 tweets. "
+  "La projection fait apparaître de nombreux micro-clusters (regroupements par thèmes/vocabulaire), "
+  "mais <b>les deux classes y sont entremêlées</b> sans frontière nette : les points « suspect » et "
+  "« non suspect » se mélangent dans les mêmes amas. Cela corrobore visuellement le constat de "
+  "l'analyse exploratoire — une séparation subtile plutôt que linéairement évidente.")
+IMG("tsne_tfidf.png", 13, "Figure 6 — Projection t-SNE de l'espace TF-IDF (échantillon de 3 500 tweets).")
 
 # ---- 5. Gestion du déséquilibre ----
 P("5. Gestion du déséquilibre des classes", h1)
@@ -127,7 +135,7 @@ story.append(t); story.append(Paragraph("Tableau 1 — Effet des stratégies de 
 P("Les <b>class weights</b> offrent le meilleur compromis : le meilleur F1 (0,988) <i>et</i> le meilleur "
   "rappel de la classe minoritaire (0,873, contre 0,779 sans correction). SMOTE dégrade ici le F1 en "
   "générant du bruit dans un espace TF-IDF très creux. <b>Les class weights sont donc retenus.</b>")
-IMG("imbalance_comparison.png", 11, "Figure 6 — Comparaison des stratégies de rééquilibrage.")
+IMG("imbalance_comparison.png", 11, "Figure 7 — Comparaison des stratégies de rééquilibrage.")
 story.append(PageBreak())
 
 # ---- 6. Comparaison des modèles ----
@@ -150,7 +158,7 @@ P("Les modèles linéaires (LinearSVC, Régression Logistique) et XGBoost obtien
   "Forest est légèrement en retrait. Nous retenons la <b>Régression Logistique</b> : performance de "
   "premier plan, probabilités calibrées natives (utiles au déploiement), interprétabilité et coût "
   "d'entraînement minimal (2,3 s contre 22,6 s pour XGBoost).")
-IMG("model_comparison.png", 15, "Figure 7 — Comparaison visuelle des cinq modèles.")
+IMG("model_comparison.png", 15, "Figure 8 — Comparaison visuelle des cinq modèles.")
 
 # ---- 7. Optimisation ----
 P("7. Optimisation des hyperparamètres", h1)
@@ -169,7 +177,7 @@ P(f"Le modèle final (TF-IDF + Régression Logistique, class weights, C=10) atte
 story.append(Table([[Image(f"{FIG}/confusion_matrix.png", width=8*cm, height=6.4*cm),
                      Image(f"{FIG}/roc_curve.png", width=8*cm, height=6.4*cm)]],
                    colWidths=[8.2*cm,8.2*cm]))
-story.append(Paragraph("Figure 8 — Matrice de confusion et courbe ROC (AUC = 0,953) du modèle final.", cap))
+story.append(Paragraph("Figure 9 — Matrice de confusion et courbe ROC (AUC = 0,953) du modèle final.", cap))
 
 # ---- 9. Déploiement ----
 P("9. Déploiement", h1)
