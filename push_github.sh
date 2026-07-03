@@ -14,7 +14,7 @@ set -euo pipefail
 # 1. À CONFIGURER
 # ─────────────────────────────────────────────────────────────────────────────
 # URL de TON dépôt GitHub (crée d'abord un dépôt VIDE sur github.com)
-GITHUB_URL="https://github.com/<ton-user>/detection-tweets-suspects.git"
+GITHUB_URL="https://github.com/koalatif/detection-tweets-suspects.git"
 
 # Type de remote DVC : "gdrive" (Google Drive), "s3" (AWS), ou "local" (dossier)
 DVC_REMOTE_TYPE="gdrive"
@@ -23,7 +23,7 @@ DVC_REMOTE_TYPE="gdrive"
 #   - gdrive : l'ID du dossier Google Drive (partie après /folders/ dans l'URL)
 #   - s3     : s3://mon-bucket/chemin
 #   - local  : /chemin/absolu/vers/un/dossier
-DVC_REMOTE_URL="gdrive://<ID_DU_DOSSIER_DRIVE>"
+DVC_REMOTE_URL="gdrive://1TrJA1lM8Qa9BJUkhDVAe2cpa9HHeQG6Q"
 
 BRANCH="main"   # nom de la branche à pousser
 
