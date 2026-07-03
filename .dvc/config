@@ -1,4 +1,6 @@
 [core]
-    remote = localremote
+    remote = storage
 ['remote "localremote"']
     url = /sessions/youthful-dreamy-lamport/dvcstore
+['remote "storage"']
+    url = gdrive://1TrJA1lM8Qa9BJUkhDVAe2cpa9HHeQG6Q
