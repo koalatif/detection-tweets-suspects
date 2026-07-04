@@ -176,56 +176,56 @@ with col_result:
                 can_explain = True
 
             if pred == 1:
-                    st.markdown(f"""
-                    <div class="result-card suspect-card">
-                        <div class="result-title">ALERTE SUSPECT</div>
-                        <div class="result-proba">{proba * 100:.1f} %</div>
-                        <div style="font-size: 1.1rem; opacity: 0.9;">Probabilité d'anomalie ou de phishing</div>
-                    </div>
-                    """, unsafe_allow_html=True)
+                st.markdown(f"""
+                <div class="result-card suspect-card">
+                    <div class="result-title">ALERTE SUSPECT</div>
+                    <div class="result-proba">{proba * 100:.1f} %</div>
+                    <div style="font-size: 1.1rem; opacity: 0.9;">Probabilité d'anomalie ou de phishing</div>
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown(f"""
+                <div class="result-card normal-card">
+                    <div class="result-title">TWEET SAIN</div>
+                    <div class="result-proba">{(1 - proba) * 100:.1f} %</div>
+                    <div style="font-size: 1.1rem; opacity: 0.9;">Probabilité d'authenticité</div>
+                </div>
+                """, unsafe_allow_html=True)
+
+            st.markdown("###  Raisonnement de l'IA")
+            
+            if not can_explain:
+                st.info("💡 **Modèle Avancé (Transformers)** : Ce modèle analyse le contexte global de la phrase grâce à un réseau de neurones. Contrairement au modèle classique, le poids de la décision est réparti sur tout le contexte, il n'est donc pas possible d'isoler l'impact individuel de chaque mot.")
+            else:
+                st.caption("Top des mots ayant influencé cette décision (contribution algorithmique) :")
+
+                cx = X.tocoo()
+                contributions = []
+                for j, v in zip(cx.col, cx.data):
+                    word = vocab[j]
+                    weight = coefs[j] * v          # influence = tfidf × coefficient
+                    contributions.append((word, weight))
+
+                contributions.sort(key=lambda x: abs(x[1]), reverse=True)
+                top_contributions = contributions[:8]
+
+                if not top_contributions:
+                    st.info("Le modèle n'a reconnu aucun mot décisif par rapport à son apprentissage.")
                 else:
-                    st.markdown(f"""
-                    <div class="result-card normal-card">
-                        <div class="result-title">TWEET SAIN</div>
-                        <div class="result-proba">{(1 - proba) * 100:.1f} %</div>
-                        <div style="font-size: 1.1rem; opacity: 0.9;">Probabilité d'authenticité</div>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    df_c = pd.DataFrame(top_contributions, columns=["Mot", "Poids"])
+                    df_c["Impact"] = [
+                        "Suspect (Anomalie)" if x > 0 else "Normal (Sain)" for x in df_c["Poids"]]
+                    chart = alt.Chart(df_c).mark_bar(cornerRadiusEnd=4, size=20).encode(
+                        x=alt.X("Poids:Q", title="Contribution algorithmique"),
+                        y=alt.Y("Mot:N", sort="-x", title=""),
+                        color=alt.Color("Impact:N", scale=alt.Scale(
+                            domain=["Suspect (Anomalie)", "Normal (Sain)"],
+                            range=["#ef4444", "#10b981"]), legend=None),
+                        tooltip=["Mot", "Poids"]
+                    ).properties(height=len(df_c) * 30 + 50)
+                    st.altair_chart(chart, use_container_width=True)
 
-                st.markdown("###  Raisonnement de l'IA")
-                
-                if not can_explain:
-                    st.info("💡 **Modèle Avancé (Transformers)** : Ce modèle analyse le contexte global de la phrase grâce à un réseau de neurones. Contrairement au modèle classique, le poids de la décision est réparti sur tout le contexte, il n'est donc pas possible d'isoler l'impact individuel de chaque mot.")
-                else:
-                    st.caption("Top des mots ayant influencé cette décision (contribution algorithmique) :")
-
-                    cx = X.tocoo()
-                    contributions = []
-                    for j, v in zip(cx.col, cx.data):
-                        word = vocab[j]
-                        weight = coefs[j] * v          # influence = tfidf × coefficient
-                        contributions.append((word, weight))
-
-                    contributions.sort(key=lambda x: abs(x[1]), reverse=True)
-                    top_contributions = contributions[:8]
-
-                    if not top_contributions:
-                        st.info("Le modèle n'a reconnu aucun mot décisif par rapport à son apprentissage.")
-                    else:
-                        df_c = pd.DataFrame(top_contributions, columns=["Mot", "Poids"])
-                        df_c["Impact"] = [
-                            "Suspect (Anomalie)" if x > 0 else "Normal (Sain)" for x in df_c["Poids"]]
-                        chart = alt.Chart(df_c).mark_bar(cornerRadiusEnd=4, size=20).encode(
-                            x=alt.X("Poids:Q", title="Contribution algorithmique"),
-                            y=alt.Y("Mot:N", sort="-x", title=""),
-                            color=alt.Color("Impact:N", scale=alt.Scale(
-                                domain=["Suspect (Anomalie)", "Normal (Sain)"],
-                                range=["#ef4444", "#10b981"]), legend=None),
-                            tooltip=["Mot", "Poids"]
-                        ).properties(height=len(df_c) * 30 + 50)
-                        st.altair_chart(chart, use_container_width=True)
-
-                log_prediction(txt, cleaned_log, proba, pred)
+            log_prediction(txt, cleaned_log, proba, pred)
 
 st.markdown("<br><hr>", unsafe_allow_html=True)
 st.caption("Projet ML MLOps — page **Monitoring** (barre latérale) pour les statistiques des prédictions. ")
