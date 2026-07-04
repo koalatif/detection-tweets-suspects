@@ -73,26 +73,59 @@ def main():
     # 3. Split + classifieur léger sur les embeddings
     X_tr, X_te, y_tr, y_te = train_test_split(
         X, y, test_size=0.2, random_state=42, stratify=y)
-    clf = LogisticRegression(C=10, class_weight="balanced", max_iter=1000, n_jobs=-1)
+    clf = LogisticRegression(C=10, class_weight="balanced", max_iter=1000, n_jobs=None)
+    import time
+    t0 = time.time()
     clf.fit(X_tr, y_tr)
+    train_time = time.time() - t0
 
     # 4. Évaluation
     y_pred = clf.predict(X_te)
     y_proba = clf.predict_proba(X_te)[:, 1]
+    
+    acc = round(accuracy_score(y_te, y_pred), 4)
+    prec = round(precision_score(y_te, y_pred), 4)
+    rec = round(recall_score(y_te, y_pred), 4)
+    f1 = round(f1_score(y_te, y_pred), 4)
+    roc_auc = round(roc_auc_score(y_te, y_proba), 4)
+    
     metrics = {
         "representation": f"sentence-transformers/{args.model}",
         "embedding_dim": int(X.shape[1]),
         "n_samples": int(len(df)),
-        "accuracy": round(accuracy_score(y_te, y_pred), 4),
-        "precision": round(precision_score(y_te, y_pred), 4),
-        "recall": round(recall_score(y_te, y_pred), 4),
-        "f1": round(f1_score(y_te, y_pred), 4),
-        "roc_auc": round(roc_auc_score(y_te, y_proba), 4),
+        "accuracy": acc,
+        "precision": prec,
+        "recall": rec,
+        "f1": f1,
+        "roc_auc": roc_auc,
     }
     os.makedirs("reports/figures", exist_ok=True)
     json.dump(metrics, open("reports/bert_metrics.json", "w"), indent=2)
     joblib.dump(clf, "models/bert_head.joblib")
     print(json.dumps(metrics, indent=2))
+    
+    # Ajout au fichier global de comparaison des modèles
+    global_metrics = {
+        "model": f"Transformer ({args.model})",
+        "accuracy": acc,
+        "precision": prec,
+        "recall": rec,
+        "f1": f1,
+        "roc_auc": roc_auc,
+        "cv_f1_mean": None, # Non calculé pour BERT par défaut pour gagner du temps
+        "cv_f1_std": None,
+        "train_time_s": round(train_time, 1),
+    }
+    
+    results_path = "reports/model_comparison.json"
+    if os.path.exists(results_path):
+        data = json.load(open(results_path))
+    else:
+        data = []
+    
+    # Remplacer si le modèle existe déjà
+    data = [d for d in data if d["model"] != global_metrics["model"]] + [global_metrics]
+    json.dump(data, open(results_path, "w"), indent=2)
 
     # 5. Matrice de confusion
     cm = confusion_matrix(y_te, y_pred)

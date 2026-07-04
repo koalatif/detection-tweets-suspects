@@ -49,3 +49,17 @@ stages:
           cache: false
       - reports/figures/roc_curve.png:
           cache: false
+
+  train_bert:
+    cmd: python src/train_bert.py
+    deps:
+      - src/train_bert.py
+      - data/processed/clean.csv
+    metrics:
+      - reports/bert_metrics.json:
+          cache: false
+    plots:
+      - reports/figures/confusion_matrix_bert.png:
+          cache: false
+    outs:
+      - models/bert_head.joblib

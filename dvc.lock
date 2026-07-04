@@ -119,3 +119,27 @@ stages:
       hash: md5
       md5: 3c07f7ba1cb21d3fdbc8c8ff68419874
       size: 163
+  train_bert:
+    cmd: python src/train_bert.py
+    deps:
+    - path: data/processed/clean.csv
+      hash: md5
+      md5: f60349562e8ecc673d090c4a4694603d
+      size: 2500025
+    - path: src/train_bert.py
+      hash: md5
+      md5: 43043c2ba27d52b73be3ce5077eb2c1d
+      size: 5443
+    outs:
+    - path: models/bert_head.joblib
+      hash: md5
+      md5: e95402ff5a8a424a86ae32dc47858439
+      size: 3935
+    - path: reports/bert_metrics.json
+      hash: md5
+      md5: 433449df2d424088899d7ddbdecf4600
+      size: 221
+    - path: reports/figures/confusion_matrix_bert.png
+      hash: md5
+      md5: 5caf7a1ee42d725fe3ac8293b46682c6
+      size: 20736
