@@ -32,7 +32,7 @@ USE_STEMMING = _use_stemming()
 
 st.set_page_config(
     page_title="Détection de Tweets Suspects",
-    page_icon="🐦",
+    page_icon="",
     layout="wide")
 
 # --- CUSTOM CSS ---
@@ -108,7 +108,7 @@ def log_prediction(text, cleaned, proba, pred):
 vec, model, vocab, coefs = load_artifacts()
 
 st.markdown(
-    '<h1 class="title-gradient">🐦 Détection de Tweets Suspects</h1>',
+    '<h1 class="title-gradient"> Détection de Tweets Suspects</h1>',
     unsafe_allow_html=True)
 st.caption("Classification propulsée par l'IA (NLP & Régression Logistique), avec IA explicable en temps réel.")
 st.markdown("<br>", unsafe_allow_html=True)
@@ -116,16 +116,16 @@ st.markdown("<br>", unsafe_allow_html=True)
 col_input, col_space, col_result = st.columns([1.2, 0.1, 1])
 
 with col_input:
-    st.markdown("### 📝 Soumettre un message")
+    st.markdown("###  Soumettre un message")
     txt = st.text_area("Saisissez le texte du tweet ci-dessous :",
                        "URGENT!!! Your bank account is locked. Verify now at http://secure-update-info.com",
                        height=180, label_visibility="collapsed")
     st.markdown("<br>", unsafe_allow_html=True)
-    analyze_btn = st.button("🚀 LANCER L'ANALYSE")
+    analyze_btn = st.button(" LANCER L'ANALYSE")
     st.markdown("<br>", unsafe_allow_html=True)
 
     if analyze_btn and txt.strip():
-        with st.expander("🔍 Voir les détails du pipeline NLP"):
+        with st.expander(" Voir les détails du pipeline NLP"):
             cleaned = clean_text(txt, use_stemming=USE_STEMMING)
             st.markdown("**Texte brut original :**\n> " + txt)
             st.markdown(
@@ -161,7 +161,7 @@ with col_result:
                     </div>
                     """, unsafe_allow_html=True)
 
-                st.markdown("### 🧠 Raisonnement de l'IA")
+                st.markdown("###  Raisonnement de l'IA")
                 st.caption("Top des mots ayant influencé cette décision (contribution algorithmique) :")
 
                 cx = X.tocoo()
@@ -193,4 +193,4 @@ with col_result:
                 log_prediction(txt, cleaned, proba, pred)
 
 st.markdown("<br><hr>", unsafe_allow_html=True)
-st.caption("Projet ML MLOps — page **Monitoring** (barre latérale) pour les statistiques des prédictions. 📊")
+st.caption("Projet ML MLOps — page **Monitoring** (barre latérale) pour les statistiques des prédictions. ")

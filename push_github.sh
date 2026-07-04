@@ -72,9 +72,9 @@ case "$DVC_REMOTE_TYPE" in
 esac
 
 # (re)définit le remote par défaut nommé 'storage'
-dvc remote add -d -f storage "$DVC_REMOTE_URL"
+python -m dvc remote add -d -f storage "$DVC_REMOTE_URL"
 echo "==> Envoi des données/modèles vers le remote DVC…"
-#dvc push
+python -m dvc push
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 5. PUSH GITHUB

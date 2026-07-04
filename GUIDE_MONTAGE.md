@@ -143,13 +143,26 @@ cd detection-tweets-suspects
 ```
 Sinon, tu as déjà le dossier localement.
 
-### Étape 2 — Récupérer les données et modèles versionnés
+### Étape 2 — Configurer l'accès Google Drive et récupérer les données
+
+Le stockage distant (remote) de ce projet est configuré sur Google Drive. Suite aux politiques de sécurité de Google, vous devez fournir vos propres identifiants pour que DVC puisse s'y connecter :
+
+1. **Prérequis** : Assurez-vous d'avoir installé l'extension GDrive pour DVC : `pip install dvc-gdrive`
+2. Allez sur [Google Cloud Console](https://console.cloud.google.com/) et créez un projet.
+3. Activez l'**API Google Drive** (dans "API et services" > "Activer des API").
+4. Configurez l'**Écran de consentement OAuth** (ajoutez votre email dans les *Utilisateurs test* ou cliquez sur *Publier l'application*).
+5. Créez des identifiants **ID client OAuth** (Type : Application de bureau).
+6. Liez vos identifiants à DVC via le terminal :
+   ```bash
+   dvc remote modify storage gdrive_client_id "VOTRE_ID_CLIENT"
+   dvc remote modify storage gdrive_client_secret "VOTRE_CODE_SECRET"
+   ```
+
+Une fois configuré, téléchargez le dataset et les modèles versionnés :
 ```bash
 dvc pull
 ```
-Cette commande télécharge le dataset et les modèles depuis le *remote* DVC.
-> ℹ️ Ici le remote est un dossier local. En équipe, ce serait Google Drive / S3.
-> Si `dvc pull` n'a rien à faire (données déjà présentes), c'est normal.
+> *(Une fenêtre s'ouvrira dans votre navigateur pour valider l'accès à votre compte Google. Si un avertissement de sécurité apparaît, cliquez sur "Paramètres avancés" puis "Accéder à l'application").*
 
 ### Étape 3 — Vérifier que tout est là
 ```bash
