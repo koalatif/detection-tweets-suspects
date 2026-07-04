@@ -93,6 +93,16 @@ def load_artifacts():
     coefs = model.coef_[0]
     return vec, model, vocab, coefs
 
+@st.cache_resource
+def load_bert_artifacts():
+    try:
+        from sentence_transformers import SentenceTransformer
+        encoder = SentenceTransformer("all-MiniLM-L6-v2")
+        clf = joblib.load(os.path.join(ROOT, "models", "bert_head.joblib"))
+        return encoder, clf
+    except Exception:
+        return None, None
+
 
 def log_prediction(text, cleaned, proba, pred):
     new = not os.path.exists(LOG)
@@ -117,6 +127,9 @@ col_input, col_space, col_result = st.columns([1.2, 0.1, 1])
 
 with col_input:
     st.markdown("###  Soumettre un message")
+    model_choice = st.radio("Choisissez le moteur d'analyse :",
+                            ["🤖 Classique (TF-IDF)", "🧠 Avancé (Transformers)"],
+                            index=0, horizontal=True)
     txt = st.text_area("Saisissez le texte du tweet ci-dessous :",
                        "URGENT!!! Your bank account is locked. Verify now at http://secure-update-info.com",
                        height=180, label_visibility="collapsed")
@@ -126,25 +139,43 @@ with col_input:
 
     if analyze_btn and txt.strip():
         with st.expander(" Voir les détails du pipeline NLP"):
-            cleaned = clean_text(txt, use_stemming=USE_STEMMING)
             st.markdown("**Texte brut original :**\n> " + txt)
-            st.markdown(
-                "**Texte après nettoyage, filtrage et tokenisation :**\n> " + (cleaned or "*(vide)*"))
+            if "Classique" in model_choice:
+                cleaned = clean_text(txt, use_stemming=USE_STEMMING)
+                st.markdown(
+                    "**Texte après nettoyage, filtrage et tokenisation :**\n> " + (cleaned or "*(vide)*"))
+            else:
+                st.markdown("**Transformers :** Aucun nettoyage n'est appliqué car le modèle analyse la phrase originale avec son contexte complet.")
 
 with col_result:
     if analyze_btn:
         if not txt.strip():
             st.warning("Veuillez saisir un texte à analyser.")
         else:
-            cleaned = clean_text(txt, use_stemming=USE_STEMMING)
-            if not cleaned:
-                st.info("Le texte ne contient aucun mot analysable après le filtre de vocabulaire.")
+            is_bert = "Transformers" in model_choice
+            
+            if is_bert:
+                encoder, bert_clf = load_bert_artifacts()
+                if encoder is None:
+                    st.error("Impossible de charger les Transformers. Vérifiez que `sentence-transformers` est installé.")
+                    st.stop()
+                X = encoder.encode([txt])
+                proba = float(bert_clf.predict_proba(X)[0, 1])
+                pred = int(proba >= 0.5)
+                cleaned_log = txt
+                can_explain = False
             else:
+                cleaned = clean_text(txt, use_stemming=USE_STEMMING)
+                if not cleaned:
+                    st.info("Le texte ne contient aucun mot analysable après le filtre de vocabulaire.")
+                    st.stop()
                 X = vec.transform([cleaned])
                 proba = float(model.predict_proba(X)[0, 1])
                 pred = int(proba >= 0.5)
+                cleaned_log = cleaned
+                can_explain = True
 
-                if pred == 1:
+            if pred == 1:
                     st.markdown(f"""
                     <div class="result-card suspect-card">
                         <div class="result-title">ALERTE SUSPECT</div>
@@ -162,35 +193,39 @@ with col_result:
                     """, unsafe_allow_html=True)
 
                 st.markdown("###  Raisonnement de l'IA")
-                st.caption("Top des mots ayant influencé cette décision (contribution algorithmique) :")
-
-                cx = X.tocoo()
-                contributions = []
-                for j, v in zip(cx.col, cx.data):
-                    word = vocab[j]
-                    weight = coefs[j] * v          # influence = tfidf × coefficient
-                    contributions.append((word, weight))
-
-                contributions.sort(key=lambda x: abs(x[1]), reverse=True)
-                top_contributions = contributions[:8]
-
-                if not top_contributions:
-                    st.info("Le modèle n'a reconnu aucun mot décisif par rapport à son apprentissage.")
+                
+                if not can_explain:
+                    st.info("💡 **Modèle Avancé (Transformers)** : Ce modèle analyse le contexte global de la phrase grâce à un réseau de neurones. Contrairement au modèle classique, le poids de la décision est réparti sur tout le contexte, il n'est donc pas possible d'isoler l'impact individuel de chaque mot.")
                 else:
-                    df_c = pd.DataFrame(top_contributions, columns=["Mot", "Poids"])
-                    df_c["Impact"] = [
-                        "Suspect (Anomalie)" if x > 0 else "Normal (Sain)" for x in df_c["Poids"]]
-                    chart = alt.Chart(df_c).mark_bar(cornerRadiusEnd=4, size=20).encode(
-                        x=alt.X("Poids:Q", title="Contribution algorithmique"),
-                        y=alt.Y("Mot:N", sort="-x", title=""),
-                        color=alt.Color("Impact:N", scale=alt.Scale(
-                            domain=["Suspect (Anomalie)", "Normal (Sain)"],
-                            range=["#ef4444", "#10b981"]), legend=None),
-                        tooltip=["Mot", "Poids"]
-                    ).properties(height=len(df_c) * 30 + 50)
-                    st.altair_chart(chart, use_container_width=True)
+                    st.caption("Top des mots ayant influencé cette décision (contribution algorithmique) :")
 
-                log_prediction(txt, cleaned, proba, pred)
+                    cx = X.tocoo()
+                    contributions = []
+                    for j, v in zip(cx.col, cx.data):
+                        word = vocab[j]
+                        weight = coefs[j] * v          # influence = tfidf × coefficient
+                        contributions.append((word, weight))
+
+                    contributions.sort(key=lambda x: abs(x[1]), reverse=True)
+                    top_contributions = contributions[:8]
+
+                    if not top_contributions:
+                        st.info("Le modèle n'a reconnu aucun mot décisif par rapport à son apprentissage.")
+                    else:
+                        df_c = pd.DataFrame(top_contributions, columns=["Mot", "Poids"])
+                        df_c["Impact"] = [
+                            "Suspect (Anomalie)" if x > 0 else "Normal (Sain)" for x in df_c["Poids"]]
+                        chart = alt.Chart(df_c).mark_bar(cornerRadiusEnd=4, size=20).encode(
+                            x=alt.X("Poids:Q", title="Contribution algorithmique"),
+                            y=alt.Y("Mot:N", sort="-x", title=""),
+                            color=alt.Color("Impact:N", scale=alt.Scale(
+                                domain=["Suspect (Anomalie)", "Normal (Sain)"],
+                                range=["#ef4444", "#10b981"]), legend=None),
+                            tooltip=["Mot", "Poids"]
+                        ).properties(height=len(df_c) * 30 + 50)
+                        st.altair_chart(chart, use_container_width=True)
+
+                log_prediction(txt, cleaned_log, proba, pred)
 
 st.markdown("<br><hr>", unsafe_allow_html=True)
 st.caption("Projet ML MLOps — page **Monitoring** (barre latérale) pour les statistiques des prédictions. ")
