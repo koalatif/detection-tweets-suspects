@@ -1,0 +1,1542 @@
+% =====================================================================
+%  Détection Automatique de Tweets Suspects
+%  Rapport complet du projet — fusion du rapport technique,
+%  du guide de montage et du guide détaillé
+%  Compilation : pdflatex (x2)
+% =====================================================================
+\documentclass[11pt,a4paper]{report}
+
+% ---------- Encodage et polices ----------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{charter}                 % police principale (Bitstream Charter)
+\usepackage[scaled=0.92]{helvet}     % sans-serif pour titres
+\usepackage{courier}                 % mono pour le code
+
+% ---------- Mise en page ----------
+\usepackage[a4paper,margin=2.4cm,headheight=14pt]{geometry}
+\usepackage{setspace}
+\setstretch{1.08}
+\usepackage{parskip}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\itshape Détection de Tweets Suspects --- Rapport de projet}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\small\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+% ---------- Couleurs ----------
+\usepackage{xcolor}
+\definecolor{bleunuit}{RGB}{21,67,120}
+\definecolor{bleuclair}{RGB}{232,240,250}
+\definecolor{grisfond}{RGB}{245,245,245}
+\definecolor{griscode}{RGB}{60,60,60}
+\definecolor{vertok}{RGB}{22,120,60}
+\definecolor{rougealerte}{RGB}{170,30,30}
+\definecolor{orangeattention}{RGB}{200,110,10}
+\definecolor{commentgreen}{RGB}{0,128,0}
+\definecolor{stringred}{RGB}{160,32,64}
+\definecolor{kwblue}{RGB}{0,60,180}
+\definecolor{breakgray}{gray}{0.62}
+\definecolor{rulegray}{gray}{0.75}
+% Couleurs de la page de garde (charte UVBF)
+\definecolor{darkblue}{HTML}{1A365D}
+\definecolor{lightblue}{HTML}{3498DB}
+\definecolor{graytext}{HTML}{7F8C8D}
+\definecolor{darkgray}{HTML}{34495E}
+\usepackage{tikz}
+
+% ---------- Titres ----------
+\usepackage{titlesec}
+\titleformat{\chapter}[hang]
+  {\sffamily\bfseries\huge\color{bleunuit}}
+  {\thechapter.}{0.6em}{}
+\titlespacing*{\chapter}{0pt}{-20pt}{18pt}
+\titleformat{\section}
+  {\sffamily\bfseries\Large\color{bleunuit}}{\thesection}{0.6em}{}
+\titleformat{\subsection}
+  {\sffamily\bfseries\large\color{bleunuit!85!black}}{\thesubsection}{0.6em}{}
+
+% ---------- Tableaux, figures ----------
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{caption}
+\captionsetup{font=small,labelfont={bf,color=bleunuit},margin=1cm}
+\usepackage{float}
+
+% ---------- Code ----------
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily\small\color{griscode},
+  backgroundcolor=\color{grisfond},
+  frame=single, rulecolor=\color{rulegray},
+  framesep=5pt, xleftmargin=8pt, xrightmargin=8pt,
+  breaklines=true, breakatwhitespace=true,
+  postbreak=\mbox{\textcolor{breakgray}{$\hookrightarrow$}\space},
+  showstringspaces=false,
+  keywordstyle=\color{kwblue}\bfseries,
+  commentstyle=\color{commentgreen}\itshape,
+  stringstyle=\color{stringred},
+  tabsize=4, columns=fullflexible, keepspaces=true,
+  literate={é}{{\'e}}1 {è}{{\`e}}1 {ê}{{\^e}}1 {ë}{{\"e}}1
+           {à}{{\`a}}1 {â}{{\^a}}1 {î}{{\^i}}1 {ï}{{\"i}}1
+           {ô}{{\^o}}1 {ù}{{\`u}}1 {û}{{\^u}}1 {ç}{{\c c}}1
+           {É}{{\'E}}1 {È}{{\`E}}1 {À}{{\`A}}1 {Ç}{{\c C}}1
+           {œ}{{\oe}}1 {«}{{\guillemotleft}}1 {»}{{\guillemotright}}1
+           {->}{{$\rightarrow$}}2 {~}{{\textasciitilde}}1
+}
+\lstdefinestyle{py}{language=Python}
+\lstdefinestyle{sh}{language=bash,keywordstyle=\color{griscode}}
+\lstdefinestyle{yml}{language={},keywordstyle=\color{griscode}}
+
+% ---------- Encadrés ----------
+\usepackage[most]{tcolorbox}
+\newtcolorbox{enclair}{
+  enhanced, colback=bleuclair, colframe=bleunuit,
+  boxrule=0.6pt, arc=2mm, left=8pt, right=8pt, top=6pt, bottom=6pt,
+  title={\sffamily\bfseries En clair}, coltitle=white,
+  colbacktitle=bleunuit, attach boxed title to top left={xshift=6pt,yshift=-2mm},
+  boxed title style={arc=1mm, boxrule=0pt}, before skip=10pt, after skip=10pt
+}
+\newtcolorbox{attention}{
+  enhanced, colback=orangeattention!8, colframe=orangeattention,
+  boxrule=0.6pt, arc=2mm, left=8pt, right=8pt, top=6pt, bottom=6pt,
+  title={\sffamily\bfseries Attention}, coltitle=white,
+  colbacktitle=orangeattention, attach boxed title to top left={xshift=6pt,yshift=-2mm},
+  boxed title style={arc=1mm, boxrule=0pt}, before skip=10pt, after skip=10pt
+}
+\newtcolorbox{pourquoi}{
+  enhanced, colback=vertok!6, colframe=vertok,
+  boxrule=0.6pt, arc=2mm, left=8pt, right=8pt, top=6pt, bottom=6pt,
+  title={\sffamily\bfseries Pourquoi ?}, coltitle=white,
+  colbacktitle=vertok, attach boxed title to top left={xshift=6pt,yshift=-2mm},
+  boxed title style={arc=1mm, boxrule=0pt}, before skip=10pt, after skip=10pt
+}
+
+% ---------- Divers ----------
+\usepackage{amsmath}
+\usepackage{enumitem}
+\setlist{itemsep=2pt,topsep=4pt}
+\usepackage{xurl}
+\usepackage[hidelinks,pdfusetitle]{hyperref}
+\hypersetup{
+  pdftitle={Détection Automatique de Tweets Suspects — Rapport de projet},
+  pdfauthor={KOALA Valentin — UVBF, Master 2 FDIA},
+  pdfsubject={Machine Learning, NLP, DVC, MLflow, Streamlit},
+  colorlinks=true, linkcolor=bleunuit, urlcolor=bleunuit, citecolor=bleunuit
+}
+\newcommand{\code}[1]{\texttt{\small #1}}
+\emergencystretch=2em
+\hbadness=5000
+
+% =====================================================================
+\begin{document}
+
+% ------------------------- PAGE DE GARDE (UVBF) ----------------------
+\begin{titlepage}
+% Bordure et coins décoratifs avec TikZ
+\begin{tikzpicture}[remember picture,overlay]
+    % Bordure principale
+    \draw[darkblue, line width=2pt]
+        ([shift={(2cm,-2cm)}]current page.north west)
+        rectangle
+        ([shift={(-2cm,2cm)}]current page.south east);
+
+    % Coin Supérieur Gauche
+    \draw[lightblue, line width=4pt]
+        ([shift={(1.95cm,-2.5cm)}]current page.north west) --
+        ([shift={(1.95cm,-1.95cm)}]current page.north west) --
+        ([shift={(2.5cm,-1.95cm)}]current page.north west);
+
+    % Coin Supérieur Droit
+    \draw[lightblue, line width=4pt]
+        ([shift={(-1.95cm,-2.5cm)}]current page.north east) --
+        ([shift={(-1.95cm,-1.95cm)}]current page.north east) --
+        ([shift={(-2.5cm,-1.95cm)}]current page.north east);
+
+    % Coin Inférieur Gauche
+    \draw[lightblue, line width=4pt]
+        ([shift={(1.95cm,2.5cm)}]current page.south west) --
+        ([shift={(1.95cm,1.95cm)}]current page.south west) --
+        ([shift={(2.5cm,1.95cm)}]current page.south west);
+
+    % Coin Inférieur Droit
+    \draw[lightblue, line width=4pt]
+        ([shift={(-1.95cm,2.5cm)}]current page.south east) --
+        ([shift={(-1.95cm,1.95cm)}]current page.south east) --
+        ([shift={(-2.5cm,1.95cm)}]current page.south east);
+\end{tikzpicture}
+\centering
+\vspace*{0.5cm}
+\includegraphics[width=4cm]{Logo_UVBF.png}
+\par\vspace{1cm}
+{\Large\bfseries\color{darkblue} Université Virtuelle du Burkina Faso (UVBF)\par}
+\vspace{0.5cm}
+{\large\color{darkgray} Master 2 --- Fouilles de Données et Intelligence Artificielle (FDIA)\par}
+\vspace{2.5cm}
+{\Large\itshape\color{graytext} Rapport de Projet de \textbf{Construction de modèles et leur Déploiement}\par}
+\vspace{1cm}
+{\Huge\bfseries\color{darkblue} Examen Final de\\[0.3cm] Détection de Tweets Suspects avec GiT et DVC \par}
+
+\vspace{0.5cm}
+\textcolor{lightblue}{\rule{12cm}{1.5pt}}\par
+\vspace{3cm}
+\begin{minipage}[t]{0.45\textwidth}
+    \begin{flushleft}
+        \textcolor{graytext}{\small Réalisé PAR :}\\[0.2cm]
+        \textbf{\large KOALA Valentin}
+    \end{flushleft}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.45\textwidth}
+    \begin{flushright}
+        \textcolor{graytext}{\small Sous la supervision de :}\\[0.2cm]
+        \textbf{\large Dr. Abdoul Kader KABORE}
+    \end{flushright}
+\end{minipage}
+\vfill
+{\large\bfseries\color{graytext} Année Académique : 2025 - 2026\par}
+\vspace*{0.5cm}
+\end{titlepage}
+
+% ------------------------- COMMENT LIRE ------------------------------
+\chapter*{Comment lire ce rapport}
+\addcontentsline{toc}{chapter}{Comment lire ce rapport}
+
+En rédigeant ce document, j'ai voulu éviter d'avoir d'un côté un rapport
+« officiel » et de l'autre des notes de montage éparpillées. J'ai donc tout
+regroupé ici, à trois niveaux de lecture :
+
+\begin{itemize}
+  \item \textbf{le rapport technique} (partie~I) : le problème, les données, mes
+        choix de méthode, les résultats chiffrés et leur discussion ;
+  \item \textbf{les explications pédagogiques} : chaque concept que j'ai dû
+        m'approprier pendant le projet (TF-IDF, déséquilibre des classes,
+        validation croisée, dérive\ldots) est expliqué avec des exemples chiffrés,
+        et reformulé en langage simple dans des encadrés
+        \textcolor{bleunuit}{\sffamily\bfseries En clair} ;
+  \item \textbf{le guide de montage} (partie~II) : les commandes exactes que
+        j'utilise, avec les sorties attendues, pour que n'importe qui puisse
+        reproduire le projet de zéro.
+\end{itemize}
+
+Selon ce que vous cherchez, tout n'est pas à lire dans l'ordre :
+\begin{itemize}
+  \item pour \emph{juste faire tourner le projet} : les chapitres
+        \ref{chap:installation} et \ref{chap:dvc}, puis la checklist en
+        annexe~\ref{annexe:checklist} suffisent ;
+  \item pour \emph{comprendre la démarche} : tout, en insistant sur les chapitres
+        \ref{chap:filrouge}, \ref{chap:concepts} et \ref{chap:scripts} ;
+  \item pour \emph{réutiliser le projet ailleurs} : les chapitres \ref{chap:dvc}
+        (DVC), \ref{chap:cloud} (Docker/cloud) et \ref{chap:cicd} (CI/CD).
+\end{itemize}
+
+\textbf{Convention.} Les blocs grisés sont des commandes à taper dans un
+terminal ou des extraits de code. Les encadrés colorés reformulent une idée en
+langage simple (\textcolor{bleunuit}{En clair}), justifient un choix que j'ai
+fait (\textcolor{vertok}{Pourquoi~?}) ou signalent un piège dans lequel je suis
+parfois tombé moi-même (\textcolor{orangeattention}{Attention}).
+
+\begin{tcolorbox}[enhanced,colback=vertok!7,colframe=vertok,boxrule=1pt,arc=2mm,
+  title={\sffamily\bfseries Liens du projet (accès direct)},coltitle=white,
+  colbacktitle=vertok,left=8pt,right=8pt,top=6pt,bottom=6pt]
+\begin{description}[itemsep=4pt,topsep=2pt]
+  \item[Dépôt GitHub (code + pipeline DVC + CI/CD) :]\hfill\\
+        \url{https://github.com/koalatif/detection-tweets-suspects}
+  \item[Application en ligne (Streamlit Community Cloud) :]\hfill\\
+        \url{https://detection-tweets-suspects-bfmqjctabuevrlprb5vkwy.streamlit.app}
+\end{description}
+\small L'application est déployée et accessible publiquement : on peut tester
+la détection en direct (deux moteurs d'analyse au choix, TF-IDF classique ou
+Transformers) et consulter la page \emph{Monitoring}, sans rien installer.
+\end{tcolorbox}
+
+\tableofcontents
+
+% =====================================================================
+\part{Rapport technique : de la donnée brute au modèle final}
+% =====================================================================
+
+\chapter{Introduction}
+
+Les réseaux sociaux véhiculent une masse d'information utile, mais aussi du
+spam, des arnaques et des contenus trompeurs. L'objectif de ce projet était de
+construire une solution complète capable d'identifier automatiquement les
+tweets suspects --- et surtout de couvrir \textbf{tout le cycle de vie} d'un
+projet de Machine Learning, pas seulement l'entraînement d'un modèle : de
+l'exploration des données jusqu'au déploiement et au monitoring, avec un
+versionnement des données et des modèles via \textbf{DVC} (\emph{Data Version
+Control}).
+
+\section{Le problème métier}
+Sur un réseau social, un flux continu de messages arrive. On veut trier
+automatiquement ceux qui sont \emph{suspects} (spam, arnaques, contenu
+trompeur) de ceux qui sont \emph{normaux}, sans lire chaque message à la main.
+C'est donc une tâche de \textbf{classification binaire de texte} : à chaque
+tweet, associer une étiquette $0$ (non suspect) ou $1$ (suspect).
+
+\section{Les données}
+Le point de départ est un fichier \code{tweets\_suspect.csv} de
+\textbf{60\,000 tweets} annotés, avec deux colonnes :
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lll}
+\toprule
+\textbf{Colonne} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\code{message} & texte & le tweet brut \\
+\code{label}   & 0 ou 1 & $1$ = suspect, $0$ = non suspect \\
+\bottomrule
+\end{tabular}
+\caption{Structure du jeu de données.}
+\end{table}
+
+Dès l'exploration, deux constats se sont imposés et ont orienté toute la suite :
+\begin{enumerate}
+  \item un \textbf{déséquilibre fort} : environ \textbf{89,8\,\%} de classe $1$
+        contre \textbf{10,2\,\%} de classe $0$ ;
+  \item \textbf{293 doublons exacts}, que j'ai supprimés au nettoyage ; il
+        reste donc \textbf{59\,450 tweets}.
+\end{enumerate}
+
+\begin{enclair}
+Comme 9 tweets sur 10 sont « suspects », un modèle paresseux qui répondrait
+toujours « suspect » aurait déjà $\sim$90\,\% de bonnes réponses. C'est pour ça
+que l'\emph{accuracy} seule est trompeuse ici, et que j'ai soigné le
+rééquilibrage des classes et des métriques comme le F1 ou l'AUC.
+\end{enclair}
+
+\section{La chaîne de traitement}
+Le projet suit une chaîne complète, chaque maillon ayant son script dédié dans
+\code{src/} :
+\begin{center}\small
+Tweet brut $\rightarrow$ Nettoyage $\rightarrow$ Vectorisation (TF-IDF)
+$\rightarrow$ Modèle (LogReg) $\rightarrow$ Évaluation (F1, ROC)
+$\rightarrow$ Déploiement (Streamlit) $\rightarrow$ Monitoring (drift)
+\end{center}
+
+Deux outils encadrent le tout :
+\begin{itemize}
+  \item \textbf{Git} versionne le code (qui a changé quoi, quand) ;
+  \item \textbf{DVC} versionne les données et les modèles (trop volumineux pour
+        Git) et orchestre le pipeline.
+\end{itemize}
+
+L'idée que j'ai gardée en tête du début à la fin : n'importe qui doit pouvoir
+cloner le dépôt, taper \code{dvc repro}, et retrouver exactement mes résultats.
+
+\section{Organisation du projet}
+\begin{lstlisting}[style=yml]
+detection-tweets-suspects/
+|-- data/
+|   |-- raw/tweets_suspect.csv     60 000 tweets (versionné par DVC)
+|   '-- processed/                 sorties générées par le pipeline
+|-- src/                           tout le code Python
+|   |-- preprocess.py       (1) nettoyage du texte
+|   |-- eda.py              (1) analyse exploratoire + figures
+|   |-- featurize.py        (3) TF-IDF + split train/test
+|   |-- train.py            (4) entraînement du modèle final
+|   |-- evaluate.py         (6) métriques + matrice de confusion + ROC
+|   |-- compare_models.py       comparaison des 5 modèles
+|   |-- optimize.py             GridSearch + stratégies de déséquilibre
+|   '-- train_mlflow.py         suivi d'expériences MLflow (bonus)
+|-- notebooks/01_exploration.ipynb  exploration interactive
+|-- app/
+|   |-- streamlit_app.py        interface de prédiction
+|   '-- pages/2__Monitoring.py  dashboard de monitoring (bonus)
+|-- models/                     vectoriseur + modèle (versionnés DVC)
+|-- reports/                    métriques, figures, rapport PDF
+|-- tests/                      tests pytest
+|-- dvc.yaml / params.yaml      définition + paramètres du pipeline
+|-- Dockerfile / DEPLOYMENT.md  déploiement cloud (bonus)
+|-- .github/workflows/ci.yml    CI/CD (bonus)
+'-- requirements.txt
+\end{lstlisting}
+Le chiffre \emph{(n)} renvoie à la partie correspondante du sujet.
+
+L'ensemble du projet est publié sur GitHub (dépôt public, 24 commits, branche
+\code{main}) : \url{https://github.com/koalatif/detection-tweets-suspects}.
+L'historique des commits raconte d'ailleurs assez bien ma progression : d'abord
+l'EDA et le prétraitement, puis le pipeline DVC et la comparaison des 5
+modèles, et enfin les bonus (MLflow, CI/CD, déploiement cloud) et quelques
+corrections issues d'un audit MLOps que j'ai fait en fin de projet.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\includegraphics[width=0.95\linewidth]{github_repo.png}}
+  \caption{Le dépôt GitHub public du projet
+  (\code{koalatif/detection-tweets-suspects}) : on y retrouve l'arborescence
+  décrite ci-dessus (\code{src/}, \code{app/}, \code{data/}, \code{models/},
+  \code{tests/}, \code{.github/workflows/}, \code{.dvc/}\ldots) ainsi que
+  l'historique des 24 commits.}
+\end{figure}
+
+% ---------------------------------------------------------------
+\chapter{Analyse exploratoire des données}
+
+Les données comportent deux variables (\code{message}, \code{label}), sans
+valeur manquante, avec 293 doublons exacts. La première chose qui saute aux
+yeux quand on trace la distribution des classes, c'est le \textbf{déséquilibre
+massif} : la classe « suspect » représente environ \textbf{89,8\,\%} des
+observations, contre \textbf{10,2\,\%} pour la classe « non suspect ». Ce
+constat a orienté tous mes choix méthodologiques par la suite (stratégie de
+rééquilibrage, métriques d'évaluation).
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.72\linewidth]{fig1_distribution_classes.png}
+  \caption{Distribution des classes (déséquilibre $\sim$90/10).}
+\end{figure}
+
+J'ai ensuite regardé si la longueur des messages pouvait servir de signal. La
+réponse est non : la longueur des tweets (médiane $\approx$ 69 caractères) et
+le nombre de mots se distribuent de façon très similaire dans les deux classes.
+Le signal utile est donc à chercher dans le \textbf{vocabulaire}, pas dans la
+forme.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.78\linewidth]{fig2_longueur_tweets.png}
+  \caption{Distribution de la longueur des tweets par classe.}
+\end{figure}
+
+Le diagramme en boîte du nombre de mots par tweet confirme ce constat : médianes
+et dispersions proches, aucun écart directement exploitable.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\linewidth]{fig3_mots_par_tweet.png}
+  \caption{Nombre de mots par tweet, par classe (boîtes à moustaches).}
+\end{figure}
+
+Les nuages de mots calculés sur le texte nettoyé, pour chacune des deux
+classes, m'ont un peu surpris : le vocabulaire est \textbf{largement partagé}
+(des mots courants du quotidien des deux côtés). Cela annonçait déjà une
+frontière de décision subtile, pas une séparation évidente --- un point sur
+lequel je reviens dans la discussion (chapitre~\ref{chap:discussion}).
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.48\linewidth]{fig4a_wordcloud_non_suspect.png}\hfill
+  \includegraphics[width=0.48\linewidth]{fig4b_wordcloud_suspect.png}
+  \caption{Nuages de mots : classe « non suspect » (gauche) et « suspect » (droite).}
+\end{figure}
+
+Enfin, le classement des mots les plus fréquents après nettoyage donne un
+aperçu du lexique dominant du corpus.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\linewidth]{fig5_top_mots.png}
+  \caption{Mots les plus fréquents après nettoyage.}
+\end{figure}
+
+% ---------------------------------------------------------------
+\chapter{Le fil rouge : suivons un tweet de bout en bout}
+\label{chap:filrouge}
+
+Pour comprendre ce que fait vraiment le pipeline, le plus parlant à mon avis
+est de suivre un tweet réel du dataset, étape par étape, de sa forme brute
+jusqu'à la prédiction.
+
+\section{Étape a --- Le tweet brut}
+\begin{lstlisting}[style=yml]
+@switchfoot http://twitpic.com/2y1zl - Awww, that's a bummer.
+You shoulda got David Carr of Third Day to do it. ;D
+\end{lstlisting}
+
+\section{Étape b --- Le nettoyage (\code{preprocess.py})}
+On applique, dans l'ordre :
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{l l l X}
+\toprule
+\textbf{Opération} & \textbf{Avant} & \textbf{Après} & \textbf{Pourquoi} \\
+\midrule
+Minuscules & \code{Awww} & \code{awww} & \code{Awww} et \code{awww} doivent être le même mot \\
+Suppression des URLs & \code{http://twitpic...} & (vide) & un lien est unique, aucun signal réutilisable \\
+Suppression des mentions & \code{@switchfoot} & (vide) & un pseudo n'aide pas à généraliser \\
+Ponctuation / chiffres / emojis & \code{;D}, \code{,}, \code{.} & (vide) & on ne garde que des lettres \\
+Stop words & \code{that's}, \code{of}, \code{to} & (vide) & mots trop fréquents, sans information \\
+Stemming (Porter) & \code{shoulda}, \code{bummer} & inchangés ici & on ramène les mots à leur racine \\
+\bottomrule
+\end{tabularx}
+\caption{Opérations de nettoyage appliquées au tweet exemple.}
+\end{table}
+
+\textbf{Résultat :} \code{awww bummer shoulda got david carr third day}
+
+\begin{enclair}
+On jette tout ce qui est « décoratif » ou propre à ce tweet précis, pour ne
+garder que les mots qui pourraient réapparaître ailleurs et porter du sens.
+\end{enclair}
+
+\section{Étape c --- La vectorisation (\code{featurize.py})}
+Le texte nettoyé devient une liste de nombres via \textbf{TF-IDF} (que je
+détaille au chapitre~\ref{chap:concepts}). L'intuition : chaque mot du
+vocabulaire devient une colonne, et la valeur dans la colonne mesure à quel
+point ce mot est important dans ce tweet. Un tweet devient donc un vecteur de
+20\,000 nombres, dont la grande majorité valent 0.
+
+\begin{pourquoi}
+Un algorithme ne comprend que des nombres, pas du texte.
+\end{pourquoi}
+
+\section{Étape d --- La prédiction (\code{train.py} / le modèle)}
+La \textbf{Régression Logistique} calcule un score entre 0 et 1 : la
+probabilité que le tweet soit suspect. Au-dessus de $0{,}5$ $\rightarrow$
+classe $1$, sinon classe $0$. J'utilise des \emph{class weights} pour compenser
+le déséquilibre ($\sim$90\,\% / 10\,\%).
+
+\begin{pourquoi}
+Pourquoi la LogReg ? Rapide, interprétable, probabilités fiables --- et sur ce
+problème, elle fait aussi bien que XGBoost (cf.\ chapitre~\ref{chap:modeles}).
+\end{pourquoi}
+
+\section{Étape e --- L'évaluation (\code{evaluate.py})}
+On compare les prédictions du modèle aux vraies étiquettes, \emph{sur des
+tweets qu'il n'a jamais vus} (le jeu de test), et on calcule F1, ROC-AUC et la
+matrice de confusion.
+
+\begin{pourquoi}
+Vérifier que le modèle \emph{généralise}, au lieu de simplement « mémoriser ».
+\end{pourquoi}
+
+\section{Étapes f/g --- Déploiement et monitoring}
+Le modèle est ensuite emballé dans une application web (Streamlit,
+chapitre~\ref{chap:streamlit}), et son comportement est surveillé dans le temps
+pour détecter une éventuelle dérive (chapitre~\ref{chap:monitoring}).
+
+% ---------------------------------------------------------------
+\chapter{Prétraitement du texte}
+
+Le nettoyage (module \code{src/preprocess.py}) applique successivement :
+conversion en \textbf{minuscules} ; suppression des \textbf{URLs}, des
+\textbf{mentions} \code{@user} et des \textbf{hashtags} ; suppression de la
+\textbf{ponctuation, des chiffres et caractères spéciaux} ; retrait des
+\textbf{stop words} anglais ; et enfin \textbf{stemming de Porter} pour ramener
+les mots à leur racine.
+
+\begin{pourquoi}
+Les URLs et mentions sont propres à chaque tweet et n'apportent pas de signal
+généralisable ; les stop words diluent l'information ; et le stemming réduit la
+dimensionnalité en regroupant les variantes morphologiques
+(\emph{update / updating / updated} $\rightarrow$ \emph{updat}), ce qui
+densifie le signal pour les modèles linéaires.
+\end{pourquoi}
+
+Les points clés du code :
+
+\begin{lstlisting}[style=py]
+STOPWORDS = set("a about above ... your yours".split())  # liste embarquée (hors-ligne)
+
+def clean_text(text, use_stemming=True):
+    text = str(text).lower()             # minuscules
+    text = _url_re.sub(" ", text)        # enlève les URLs
+    text = _mention_re.sub(" ", text)    # enlève les @mentions
+    text = text.replace("#", " ")        # enlève les # de hashtags
+    text = _nonalpha_re.sub(" ", text)   # ne garde que les lettres
+    tokens = [t for t in text.split()
+              if t not in STOPWORDS and len(t) > 1]   # retire stop words
+    if use_stemming:
+        tokens = [_stemmer.stem(t) for t in tokens]   # racine des mots
+    return " ".join(tokens).strip()
+\end{lstlisting}
+
+\begin{attention}
+J'ai choisi d'\textbf{embarquer la liste de stop words dans le code} plutôt que
+de la télécharger via NLTK. Ce choix vient d'un problème concret rencontré en
+cours de route : sans connexion Internet, le téléchargement NLTK échouait et
+bloquait tout le pipeline. Avec la liste embarquée, le projet fonctionne
+hors-ligne.
+\end{attention}
+
+% ---------------------------------------------------------------
+\chapter{Représentation des données et concepts de Machine Learning}
+\label{chap:concepts}
+
+Ce chapitre regroupe les concepts que j'ai dû m'approprier pendant le projet.
+C'est, à mon sens, le c\oe ur de la compréhension.
+
+\section{TF-IDF, avec un exemple chiffré}
+
+Les tweets nettoyés sont transformés par \textbf{TF-IDF} (\emph{Term Frequency
+-- Inverse Document Frequency}), qui donne à chaque mot un poids traduisant
+l'idée « fréquent dans \emph{ce} tweet, mais rare ailleurs » :
+\begin{itemize}
+  \item \textbf{TF} (fréquence du terme) : combien de fois le mot apparaît dans ce tweet ;
+  \item \textbf{IDF} (fréquence documentaire inverse) :
+        $\mathrm{IDF}(m) = \log\!\big(N / n_m\big)$ où $N$ est le nombre de tweets et
+        $n_m$ le nombre de tweets contenant le mot $m$. Un mot présent partout
+        (ex. \emph{today}) a un IDF proche de 0 $\rightarrow$ poids faible ; un mot
+        rare a un IDF élevé $\rightarrow$ poids fort.
+\end{itemize}
+
+Pour bien me convaincre du mécanisme, j'ai fait le calcul sur un mini-exemple à
+3 tweets :
+\begin{center}
+\code{T1: "free money"}\quad \code{T2: "free game"}\quad \code{T3: "hello world"}
+\end{center}
+Vocabulaire : \code{free}, \code{money}, \code{game}, \code{hello},
+\code{world}. Le mot \code{free} apparaît dans 2 tweets sur 3 $\rightarrow$ IDF
+modéré. \code{money} n'apparaît que dans T1 $\rightarrow$ IDF élevé : dans le
+vecteur de T1, \code{money} pèsera donc plus que \code{free}. C'est exactement
+comme ça que TF-IDF fait ressortir les mots \emph{discriminants}.
+
+Dans le projet, la vectorisation utilise \textbf{uni-grammes et bi-grammes}, un
+maximum de \textbf{20\,000 features}, une fréquence documentaire minimale
+\code{min\_df=2} et une pondération \code{sublinear\_tf} :
+\begin{itemize}
+  \item \textbf{n-grammes (1,2)} : on garde les mots seuls \emph{et} les paires.
+        « free money » (ou « free iphone ») devient une colonne à part entière ---
+        utile car l'expression est plus parlante que chaque mot isolé ;
+  \item \textbf{max\_features=20000} : on ne garde que les 20\,000 termes les
+        plus utiles (sinon on se retrouve avec des millions de colonnes) ;
+  \item \textbf{min\_df=2} : on ignore les termes qui n'apparaissent qu'une seule
+        fois, du bruit pur ;
+  \item \textbf{sublinear\_tf} : on atténue l'effet des répétitions (log) pour
+        éviter qu'un mot répété 10 fois écrase tout le reste.
+\end{itemize}
+
+J'ai retenu TF-IDF parce qu'il est performant, interprétable et bien adapté aux
+textes courts et creux comme les tweets, tout en restant très peu coûteux
+comparé aux embeddings profonds type BERT. J'ai quand même fourni une variante
+avancée par \textbf{Sentence-BERT} (\code{src/train\_bert.py}, cf.\
+chapitre~\ref{chap:bonus}) pour comparer.
+
+\begin{enclair}
+TF-IDF fabrique, pour chaque tweet, une « empreinte numérique » où les mots
+caractéristiques ressortent et où les mots passe-partout s'effacent.
+\end{enclair}
+
+\subsection{Réduction de dimension (t-SNE)}
+Pour \emph{voir} à quoi ressemble l'espace TF-IDF, j'ai projeté les vecteurs
+(20\,000 dimensions) en 2D, via une pré-réduction \textbf{TruncatedSVD} (50
+composantes) suivie d'un \textbf{t-SNE}, sur un échantillon stratifié de
+3\,500 tweets. La projection fait apparaître de nombreux \emph{micro-clusters}
+(des regroupements par thèmes ou vocabulaire), mais les deux classes y sont
+\textbf{entremêlées}, sans frontière nette : les points « suspect » et « non
+suspect » se mélangent dans les mêmes amas. Cela confirme visuellement ce que
+l'analyse exploratoire laissait deviner --- une séparation subtile, pas
+linéairement évidente.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\linewidth]{fig6_tsne.png}
+  \caption{Projection t-SNE de l'espace TF-IDF (échantillon de 3\,500 tweets).}
+\end{figure}
+
+\section{Le split train / test et la validation croisée}
+\begin{itemize}
+  \item \textbf{Train (80\,\%)} : le modèle apprend dessus.
+  \item \textbf{Test (20\,\%)} : on l'évalue dessus --- des tweets jamais vus.
+        C'est le seul juge honnête.
+  \item \textbf{Split stratifié} : on conserve la proportion 90/10 dans les deux
+        ensembles.
+  \item \textbf{Validation croisée (3-fold)} : on découpe le train en 3, on
+        entraîne sur 2 tiers et on valide sur le troisième, en tournant. La
+        performance moyenne obtenue est plus fiable qu'un essai unique.
+\end{itemize}
+
+\begin{enclair}
+Évaluer un modèle sur des données qu'il a déjà vues, c'est comme donner à un
+élève l'examen qu'il a révisé mot pour mot. Le jeu de test, ce sont des
+questions inédites.
+\end{enclair}
+
+\section{Lire les métriques (avec les chiffres du projet)}
+La \textbf{matrice de confusion} croise vérité et prédiction :
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lcc}
+\toprule
+ & \textbf{Prédit 0} & \textbf{Prédit 1} \\
+\midrule
+\textbf{Vrai 0} & Vrais Négatifs & Faux Positifs \\
+\textbf{Vrai 1} & Faux Négatifs & Vrais Positifs \\
+\bottomrule
+\end{tabular}
+\caption{Lecture de la matrice de confusion.}
+\end{table}
+
+À partir d'elle, voici les métriques du projet et comment je les lis :
+\begin{itemize}
+  \item \textbf{Precision} = parmi les « suspect » prédits, combien le sont
+        vraiment $\rightarrow$ \textbf{0,985} ;
+  \item \textbf{Recall} (rappel) = parmi les vrais suspects, combien on en
+        attrape $\rightarrow$ \textbf{0,990} ;
+  \item \textbf{F1} = moyenne harmonique de precision et recall, qui équilibre
+        les deux $\rightarrow$ \textbf{0,988} ;
+  \item \textbf{Accuracy} = proportion globale de bonnes réponses $\rightarrow$
+        \textbf{0,978}, mais trompeuse ici à cause du déséquilibre ;
+  \item \textbf{ROC-AUC} = capacité du modèle à classer un suspect au-dessus
+        d'un non-suspect, quel que soit le seuil $\rightarrow$ \textbf{0,953}
+        (0,5 = hasard, 1,0 = parfait).
+\end{itemize}
+
+\begin{enclair}
+L'AUC de 0,953 est pour moi la métrique la plus rassurante : elle prouve
+qu'au-delà de l'effet « 90\,\% de la même classe », le modèle capte un vrai
+signal dans le texte.
+\end{enclair}
+
+% ---------------------------------------------------------------
+\chapter{Gestion du déséquilibre des classes}
+\label{chap:desequilibre}
+
+C'est le point qui m'a demandé le plus d'allers-retours. Rappel : $\sim$90\,\%
+de classe 1. J'ai comparé trois stratégies, à hyperparamètres égaux :
+\begin{itemize}
+  \item \textbf{Rien} : le modèle est biaisé vers la classe majoritaire et
+        « rate » une bonne partie des rares tweets 0 ;
+  \item \textbf{Class weights} : on dit au modèle qu'une erreur sur la classe
+        rare coûte $\sim$9$\times$ plus cher, ce qui le force à faire attention à
+        la minorité ;
+  \item \textbf{SMOTE} : on génère des exemples synthétiques de la classe rare
+        pour rééquilibrer artificiellement le jeu d'entraînement.
+\end{itemize}
+
+L'indicateur clé que j'ai suivi est le \textbf{rappel de la classe minoritaire
+(0)} : la capacité à ne pas « rater » les tweets non suspects noyés dans la
+majorité.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Stratégie} & \textbf{Precision} & \textbf{Recall (cl.\,1)} & \textbf{F1} & \textbf{Recall classe 0} \\
+\midrule
+Aucune                 & 0,975 & 0,997 & 0,986 & 0,779 \\
+\textbf{Class weights} & \textbf{0,985} & \textbf{0,990} & \textbf{0,988} & \textbf{0,873} \\
+SMOTE                  & 0,982 & 0,966 & 0,974 & 0,846 \\
+\bottomrule
+\end{tabular}
+\caption{Effet des stratégies de rééquilibrage.}
+\end{table}
+
+Le résultat de SMOTE m'a d'abord surpris : sur le papier, générer des exemples
+de la classe rare semble une bonne idée, mais ici il \emph{dégrade} le F1. En y
+regardant de plus près, c'est logique : l'espace TF-IDF est extrêmement creux,
+et les points synthétiques interpolés « sonnent faux ». Les \textbf{class
+weights}, eux, offrent le meilleur des deux mondes : le meilleur F1 (0,988)
+\emph{et} le meilleur rappel de la classe minoritaire (0,873, contre 0,779 sans
+correction). C'est donc la stratégie que j'ai retenue.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.72\linewidth]{fig7_strategies_desequilibre.png}
+  \caption{Comparaison des stratégies de rééquilibrage.}
+\end{figure}
+
+\begin{enclair}
+« Rappel classe 0 = 0,873 » veut dire qu'on retrouve 87\,\% des vrais tweets
+non-suspects, contre seulement 78\,\% sans correction. Les class weights
+améliorent nettement la détection de la classe rare.
+\end{enclair}
+
+% ---------------------------------------------------------------
+\chapter{Construction et comparaison des modèles}
+\label{chap:modeles}
+
+J'ai évalué six algorithmes sur le jeu de test (20\,\%) après séparation
+stratifiée, avec une \textbf{validation croisée 3-fold} (F1) sur le train (sauf pour le modèle Transformer, par souci de temps de calcul).
+Toutes les métriques demandées dans le sujet sont rapportées.
+
+\begin{table}[H]
+\centering\small
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Modèle} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{ROC-AUC} & \textbf{CV F1} \\
+\midrule
+LinearSVC          & 0,980 & 0,983 & 0,995 & 0,989 & 0,952 & 0,986 \\
+XGBoost            & 0,979 & 0,984 & 0,992 & 0,988 & 0,936 & 0,988 \\
+LogisticRegression & 0,978 & 0,985 & 0,990 & 0,988 & 0,953 & 0,987 \\
+RandomForest       & 0,970 & 0,972 & 0,995 & 0,983 & 0,931 & 0,984 \\
+MultinomialNB      & 0,940 & 0,938 & 0,999 & 0,968 & 0,924 & 0,965 \\
+Transformer (BERT) & 0,793 & 0,970 & 0,793 & 0,873 & 0,874 & - \\
+\bottomrule
+\end{tabular}
+\caption{Comparaison des modèles (jeu de test + CV 3-fold).}
+\end{table}
+
+Les modèles linéaires (LinearSVC, Régression Logistique) et XGBoost sont quasi
+à égalité (F1 $\approx$ 0,988). Naive Bayes maximise le rappel mais paie au
+prix fort en précision ; Random Forest est légèrement en retrait. Le modèle \textbf{Transformer (Sentence-BERT)}, bien que plus riche sémantiquement, affiche des performances brutes inférieures sur ce jeu de données spécifique par rapport à la redoutable efficacité de TF-IDF sur la détection de mots-clés. J'ai hésité
+un moment entre LinearSVC et la Régression Logistique, très proches en score,
+et j'ai finalement retenu la \textbf{Régression Logistique} pour des raisons
+pratiques : des probabilités calibrées natives (indispensables pour afficher un
+pourcentage de confiance dans l'application), une bonne interprétabilité (les
+coefficients me servent ensuite pour expliquer les décisions), et un coût
+d'entraînement dérisoire (\textbf{2,3\,s} contre \textbf{22,6\,s} pour
+XGBoost).
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\linewidth]{fig8_comparaison_modeles.png}
+  \caption{Comparaison visuelle des cinq modèles.}
+\end{figure}
+
+\section{Reproduire la comparaison}
+Le pipeline DVC n'entraîne que le modèle retenu. Pour rejouer la comparaison
+des 5 modèles, il faut lancer les scripts à la main après avoir vectorisé :
+
+\begin{lstlisting}[style=sh]
+python src/featurize.py                       # crée les matrices TF-IDF (si pas déjà fait)
+python src/compare_models.py LogisticRegression
+python src/compare_models.py MultinomialNB
+python src/compare_models.py LinearSVC
+python src/compare_models.py RandomForest
+python src/compare_models.py XGBoost
+python src/optimize.py          # GridSearch + comparaison class_weight / SMOTE
+python src/plot_comparison.py   # génère les graphiques comparatifs
+\end{lstlisting}
+
+Les résultats s'accumulent dans \code{reports/model\_comparison.json} et les
+figures dans \code{reports/figures/}. On doit retrouver la Régression
+Logistique et LinearSVC en tête, avec un F1 $\approx$ 0,988.
+
+% ---------------------------------------------------------------
+\chapter{Optimisation des hyperparamètres (GridSearch)}
+
+J'ai mené une recherche par grille (\textbf{GridSearchCV}, 3-fold, scoring F1)
+sur le paramètre de régularisation $C \in \{0{,}1;\ 1;\ 10;\ 100\}$ de la
+Régression Logistique :
+\begin{itemize}
+  \item $C$ petit = régularisation forte = modèle simple (risque de
+        \emph{sous-apprentissage}) ;
+  \item $C$ grand = régularisation faible = modèle plus libre (risque de
+        \emph{sur-apprentissage}).
+\end{itemize}
+
+Les paramètres optimaux obtenus : \textbf{$C = 10$}, \textbf{penalty = l2},
+\textbf{class\_weight = balanced} (F1 CV = 0,987).
+
+\begin{enclair}
+Le GridSearch teste automatiquement plusieurs réglages et garde le meilleur, au
+sens du F1 en validation croisée : on n'optimise jamais « à l'\oe il ».
+\end{enclair}
+
+% ---------------------------------------------------------------
+\chapter{Évaluation du modèle final}
+
+Le modèle final (TF-IDF + Régression Logistique, class weights, $C=10$) atteint
+sur le jeu de test :
+
+\begin{center}
+\textbf{Accuracy 0,978} \quad \textbf{Precision 0,985} \quad
+\textbf{Recall 0,990} \quad \textbf{F1 0,988} \quad \textbf{ROC-AUC 0,953}
+\end{center}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.46\linewidth]{fig9a_matrice_confusion.png}\hfill
+  \includegraphics[width=0.50\linewidth]{fig9b_courbe_roc.png}
+  \caption{Matrice de confusion et courbe ROC (AUC = 0,953) du modèle final.}
+\end{figure}
+
+Concrètement, sur les 11\,890 tweets du jeu de test : 1\,070 vrais négatifs,
+156 faux positifs, 104 faux négatifs et 10\,560 vrais positifs. Autrement dit,
+le modèle attrape 99\,\% des tweets suspects, tout en retrouvant 87\,\% des
+tweets légitimes de la classe minoritaire --- ce qui était l'enjeu principal vu
+le déséquilibre.
+
+Ces métriques restent consultables à tout moment :
+\begin{lstlisting}[style=sh]
+dvc metrics show
+# Path                  accuracy  f1       precision  recall   roc_auc
+# reports/metrics.json  0.97813   0.98784  0.98544    0.99025  0.95315
+\end{lstlisting}
+
+% ---------------------------------------------------------------
+\chapter{Décorticage des scripts}
+\label{chap:scripts}
+
+\section{\code{preprocess.py} --- le nettoyage}
+Le code complet et commenté est au chapitre~4. À retenir : liste de stop words
+embarquée (le projet fonctionne hors-ligne), regex pour URLs et mentions,
+stemming de Porter.
+
+\section{\code{featurize.py} --- TF-IDF + split}
+\begin{lstlisting}[style=py]
+X_train, X_test, y_train, y_test = train_test_split(
+    df["clean"], df["label"], test_size=0.2,
+    random_state=42, stratify=df["label"])   # split reproductible et stratifié
+
+vec = TfidfVectorizer(max_features=20000, ngram_range=(1,2),
+                      min_df=2, sublinear_tf=True)
+Xtr = vec.fit_transform(X_train)   # APPREND le vocabulaire sur le train
+Xte = vec.transform(X_test)        # APPLIQUE le même vocabulaire au test
+\end{lstlisting}
+
+\begin{attention}
+Le détail crucial ici : \code{fit\_transform} sur le \emph{train}, mais
+seulement \code{transform} sur le \emph{test}. Sinon, le test « fuite » dans
+l'apprentissage (\textbf{data leakage}) et les scores sont artificiellement
+gonflés. C'est une erreur classique, facile à commettre sans s'en rendre
+compte.
+\end{attention}
+
+\section{\code{train.py} --- l'entraînement}
+\begin{lstlisting}[style=py]
+cw = "balanced" if cfg["imbalance"] == "class_weight" else None
+model = LogisticRegression(C=cfg["C"], class_weight=cw, max_iter=1000)
+model.fit(Xtr, y_train)
+joblib.dump(model, "models/model.joblib")   # sauvegarde du modèle
+\end{lstlisting}
+
+\section{\code{evaluate.py} --- les métriques et figures}
+Calcule accuracy / precision / recall / F1 / AUC, écrit
+\code{reports/metrics.json}, et génère la matrice de confusion et la courbe ROC
+dans \code{reports/figures/}.
+
+% =====================================================================
+\part{Reproductibilité, déploiement et industrialisation}
+% =====================================================================
+
+\chapter{Prérequis, installation et montage pas-à-pas}
+\label{chap:installation}
+
+Cette partie reprend le contenu de mes guides de montage : les commandes
+exactes, avec les sorties attendues, pour remonter le projet de zéro.
+
+\section{Ce qu'il te faut}
+\begin{itemize}
+  \item \textbf{Python 3.9 ou plus} --- vérifie avec \code{python --version} ;
+  \item \textbf{Git} --- vérifie avec \code{git --version} ;
+  \item $\sim$\textbf{500 Mo} d'espace disque (dépendances + données).
+\end{itemize}
+
+\section{Pourquoi un environnement virtuel ?}
+Un environnement virtuel est un dossier Python isolé, propre à ce projet. Il
+évite que les bibliothèques de ce projet entrent en conflit avec celles d'un
+autre.
+
+\begin{lstlisting}[style=sh]
+cd detection-tweets-suspects
+python -m venv .venv          # crée l'environnement (dossier .venv/)
+# Activation :
+source .venv/bin/activate     # macOS / Linux
+.venv\Scripts\activate        # Windows (PowerShell / CMD)
+\end{lstlisting}
+
+Quand il est actif, ton invite affiche \code{(.venv)} au début. Pour sortir :
+\code{deactivate}.
+
+\section{Installer les dépendances}
+\begin{lstlisting}[style=sh]
+pip install -r requirements.txt
+\end{lstlisting}
+Cela installe pandas, scikit-learn, imbalanced-learn, xgboost, nltk, streamlit,
+dvc, mlflow, etc.
+
+\begin{enclair}
+\code{requirements.txt} est la « liste de courses » du projet. Toute personne
+qui l'installe obtient exactement les mêmes outils, donc les mêmes résultats.
+\end{enclair}
+
+\section{Montage pas-à-pas (avec sorties attendues)}
+
+\subsection{Étape 1 --- Récupérer le code}
+Le code est hébergé sur le dépôt GitHub public du projet :
+\begin{lstlisting}[style=sh]
+git clone https://github.com/koalatif/detection-tweets-suspects.git
+cd detection-tweets-suspects
+\end{lstlisting}
+Sinon, tu as déjà le dossier localement.
+
+\subsection{Étape 2 --- Récupérer données et modèles (DVC)}
+\begin{lstlisting}[style=sh]
+dvc pull
+\end{lstlisting}
+Cette commande télécharge le dataset et les modèles depuis le remote DVC.
+Sortie typique : \code{A data/raw/tweets\_suspect.csv} puis \code{1 file added}.
+Si tout est déjà là : \code{Everything is up to date} --- c'est normal.
+\emph{Note :} ici le remote est un dossier local ; en équipe, ce serait Google
+Drive ou S3.
+
+\subsection{Étape 3 --- Vérifier l'état}
+\begin{lstlisting}[style=sh]
+ls data/raw/     # doit contenir tweets_suspect.csv
+dvc status       # état du pipeline
+\end{lstlisting}
+\code{Data and pipelines are up to date.} signifie que rien n'a besoin d'être
+recalculé.
+
+\subsection{Étape 4 --- Tout reconstruire d'une commande}
+\begin{lstlisting}[style=sh]
+dvc repro
+\end{lstlisting}
+Sortie typique (abrégée) :
+\begin{lstlisting}[style=yml]
+Running stage 'preprocess': Pretraitement termine : 59450 lignes
+Running stage 'featurize':  TF-IDF: 20000 features | train 47560 | test 11890
+Running stage 'train':      Modele entraine (logistic, class_weight)
+Running stage 'evaluate':   {accuracy: 0.978, f1: 0.988, roc_auc: 0.953}
+\end{lstlisting}
+En une commande, les 4 étapes (nettoyage, vectorisation, entraînement,
+évaluation) s'enchaînent dans le bon ordre.
+
+\subsection{Étape 5 --- Voir les métriques}
+\begin{lstlisting}[style=sh]
+dvc metrics show
+\end{lstlisting}
+
+% ---------------------------------------------------------------
+\chapter{Le pipeline DVC, expliqué en profondeur}
+\label{chap:dvc}
+
+Je dois avouer qu'au début du projet, DVC m'a semblé être une couche de
+complexité en plus de Git. C'est en modifiant plusieurs fois les paramètres et
+en voyant l'outil ne recalculer que le strict nécessaire que j'en ai compris
+l'intérêt réel. Ce chapitre explique ce qu'il apporte, concrètement.
+
+\section{Le problème que DVC résout}
+Git est fait pour du texte (du code), pas pour des fichiers de plusieurs Mo ni
+pour des modèles binaires. DVC complète Git : le code reste dans Git, les gros
+fichiers sont stockés à part, et l'ensemble garde la trace de \emph{quelle
+version de données va avec quelle version de code}.
+
+\section{Les fichiers clés}
+\begin{itemize}
+  \item \code{data/raw/tweets\_suspect.csv.dvc} --- un petit fichier texte (un
+        « pointeur ») qui contient l'empreinte (md5) du vrai CSV. C'est lui qui
+        est dans Git ; le vrai CSV, lui, est stocké dans le cache DVC et le
+        remote :
+\begin{lstlisting}[style=yml]
+outs:
+- md5: 60e5f26c964cb0a766047fd993102170
+  size: 4695170
+  path: tweets_suspect.csv
+\end{lstlisting}
+  \item \code{dvc.yaml} --- la \emph{recette} du pipeline : les étapes, leurs
+        entrées (\code{deps}), sorties (\code{outs}), paramètres (\code{params})
+        et métriques ;
+  \item \code{params.yaml} --- tous les réglages au même endroit (nombre de
+        features, $C$, stratégie de déséquilibre\ldots) ;
+  \item \code{dvc.lock} --- généré automatiquement : il fige les empreintes
+        exactes de chaque étape, ce qui garantit une reproduction à l'identique.
+\end{itemize}
+
+\section{Les cinq étapes du pipeline}
+Le pipeline déclaratif (\code{dvc.yaml}) enchaîne cinq étapes : le socle
+\textbf{preprocess} qui se scinde ensuite en deux branches parallèles
+(\textbf{featurize} $\rightarrow$ \textbf{train} $\rightarrow$ \textbf{evaluate} d'un côté, et \textbf{train\_bert} de l'autre) --- paramétrées par
+\code{params.yaml} :
+
+\begin{table}[H]
+\centering\small
+\begin{tabular}{llll}
+\toprule
+\textbf{Étape} & \textbf{Script} & \textbf{Entrée} & \textbf{Sortie} \\
+\midrule
+preprocess & \code{preprocess.py} & CSV brut & \code{data/processed/clean.csv} \\
+featurize  & \code{featurize.py}  & \code{clean.csv} & matrices TF-IDF + vectoriseur \\
+train      & \code{train.py}      & matrices train & \code{models/model.joblib} \\
+evaluate   & \code{evaluate.py}   & matrices test + modèle & \code{reports/metrics.json} + figures \\
+train\_bert & \code{train\_bert.py} & \code{clean.csv} & \code{models/bert\_head.joblib} + \code{bert\_metrics.json} \\
+\bottomrule
+\end{tabular}
+\caption{Les cinq étapes du pipeline DVC.}
+\end{table}
+
+\section{Comment DVC décide quoi recalculer}
+DVC calcule une empreinte de chaque dépendance (script + données + paramètres).
+Si rien n'a changé pour une étape, il la saute. Par exemple, si je modifie
+\code{featurize.max\_features} dans \code{params.yaml}, DVC voit que
+\code{featurize} et tout ce qui en dépend (\code{train}, \code{evaluate})
+doivent être refaits --- mais pas \code{preprocess} :
+
+\begin{lstlisting}[style=sh]
+# Exemple : augmenter le vocabulaire
+# édite params.yaml -> featurize.max_features: 30000
+dvc repro    # ne réexécute que featurize -> train -> evaluate
+\end{lstlisting}
+
+C'est ce suivi des dépendances qui fait toute la valeur de l'outil : une
+modification de paramètre ne relance que les étapes impactées, et la
+reproductibilité est totale.
+
+\section{Commandes utiles}
+\begin{lstlisting}[style=sh]
+dvc dag           # visualise le graphe du pipeline
+#            +------------+
+#            | preprocess |
+#            +------------+
+#             **         ***
+#           **              *
+#          *                 **
+# +------------+         +-----------+
+# | train_bert |         | featurize |
+# +------------+         +-----------+
+#                         **        **
+#                       **            **
+#                      *                **
+#                +-------+                *
+#                | train |              **
+#                +-------+            **
+#                         **        **
+#                           **    **
+#                             *  *
+#                         +----------+
+#                         | evaluate |
+#                         +----------+
+dvc metrics show  # affiche les métriques du modèle
+dvc params diff   # montre ce qui a changé dans les paramètres
+dvc remote list   # montre le remote configuré
+dvc push          # envoie données/modèles vers le remote
+dvc pull          # les récupère
+\end{lstlisting}
+
+N'importe qui peut reproduire l'intégralité de mes résultats avec :
+\begin{center}
+\code{dvc pull \&\& dvc repro \&\& dvc metrics show}
+\end{center}
+
+\begin{enclair}
+\code{git push/pull} déplace le \emph{code}, \code{dvc push/pull} déplace les
+\emph{données et modèles}. Les deux ensemble = un projet 100\,\% reproductible
+par un collègue.
+\end{enclair}
+
+% ---------------------------------------------------------------
+\chapter{Suivi d'expériences avec MLflow}
+\label{chap:mlflow}
+
+Au fil des essais (5 modèles, plusieurs stratégies de rééquilibrage, plusieurs
+valeurs de $C$), je me suis vite retrouvé avec la question classique : « quel
+réglage a donné quel résultat, et où est le modèle correspondant ? » C'est
+exactement ce à quoi répond MLflow : il journalise chaque essai (paramètres,
+métriques, modèle) et permet de les comparer visuellement.
+
+\begin{lstlisting}[style=sh]
+# 1. Lancer les entraînements suivis
+python src/train_mlflow.py
+# 2. Ouvrir l'interface web MLflow
+mlflow ui --backend-store-uri sqlite:///mlflow.db
+# ouvre http://localhost:5000 dans ton navigateur
+\end{lstlisting}
+
+Dans l'interface web, chaque \emph{run} (un modèle) montre ses paramètres, ses
+métriques et son artefact (le modèle sauvegardé). On peut trier les 5 runs par
+F1 ou AUC, comparer deux runs côte à côte, télécharger les modèles.
+
+\begin{enclair}
+DVC assure la \emph{reproductibilité du pipeline} ; MLflow assure la
+\emph{traçabilité des expériences}. Les deux sont complémentaires, pas
+concurrents.
+\end{enclair}
+
+% ---------------------------------------------------------------
+\chapter{Déploiement --- l'application Streamlit}
+\label{chap:streamlit}
+
+Le modèle est déployé via une \textbf{application Streamlit}
+(\code{app/streamlit\_app.py}) : on saisit un tweet, l'app applique le même
+prétraitement qu'à l'entraînement, puis affiche la \textbf{prédiction} (suspect
+/ non suspect) et la \textbf{probabilité} associée. Le vectoriseur et le modèle
+sont chargés depuis \code{models/}, artefacts versionnés par DVC.
+
+\begin{tcolorbox}[enhanced,colback=vertok!7,colframe=vertok,boxrule=1pt,arc=2mm,
+  title={\sffamily\bfseries Application en production},coltitle=white,
+  colbacktitle=vertok,left=8pt,right=8pt,top=6pt,bottom=6pt]
+L'application est déployée sur Streamlit Community Cloud et accessible
+publiquement à l'adresse :\\[2pt]
+\centering\url{https://detection-tweets-suspects-bfmqjctabuevrlprb5vkwy.streamlit.app}
+\end{tcolorbox}
+
+\section{Deux moteurs d'analyse au choix}
+J'ai voulu que l'application aille un peu plus loin qu'une simple boîte de
+prédiction : elle propose un sélecteur de \textbf{moteur d'analyse}.
+\begin{itemize}
+  \item \textbf{Classique (TF-IDF)} : le pipeline principal du rapport
+        (TF-IDF + Régression Logistique). Comme le modèle est linéaire, ses
+        coefficients me permettent d'afficher une \textbf{explication de la
+        décision} : les mots ayant le plus contribué à la prédiction
+        (contribution positive $\rightarrow$ pousse vers « suspect », négative
+        $\rightarrow$ vers « sain »).
+  \item \textbf{Avancé (Transformers)} : la variante Sentence-BERT
+        (\code{src/train\_bert.py}) qui encode le contexte global de la phrase
+        via un réseau de neurones. Plus riche sémantiquement, mais le poids de
+        la décision étant réparti sur tout le contexte, on ne peut pas isoler
+        l'impact de chaque mot --- l'app le dit explicitement à l'utilisateur
+        plutôt que d'afficher une fausse explication.
+\end{itemize}
+
+La figure~\ref{fig:app-suspect} montre le moteur classique en action sur un
+message contenant une URL : verdict \textbf{ALERTE SUSPECT} avec une
+probabilité de \textbf{98,1\,\%}, et le panneau « Raisonnement de l'IA » qui
+liste les mots discriminants (\code{graph}, \code{theori}, \code{network} en
+contribution positive, en rouge ; \code{includ}, \code{applic}, \code{cover},
+\code{note} en contribution négative, en vert). Un volet repliable « Voir les
+détails du pipeline NLP » affiche aussi le texte brut original et les étapes de
+nettoyage --- c'est le fil rouge du chapitre~\ref{chap:filrouge}, rendu visible
+directement dans l'interface.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\includegraphics[width=0.98\linewidth]{app_alerte_suspect.png}}
+  \caption{L'application déployée --- moteur \textbf{classique (TF-IDF)} :
+  verdict « ALERTE SUSPECT » à 98,1\,\% et \emph{IA explicable} (top des mots
+  ayant influencé la décision, contributions positives en rouge et négatives en
+  vert).}
+  \label{fig:app-suspect}
+\end{figure}
+
+La figure~\ref{fig:app-sain} montre le \emph{même message} analysé par le
+moteur \textbf{Transformers} : verdict \textbf{TWEET SAIN}, avec 67,8\,\% de
+probabilité d'authenticité. Ce désaccord entre les deux moteurs est un très bon
+cas d'école, qui rejoint la discussion du chapitre~\ref{chap:discussion} : la
+frontière sémantique est subtile. Le modèle contextuel ne trouve rien de
+suspect dans ce texte académique, alors que le modèle lexical TF-IDF réagit à
+des mots rares et à la présence d'une URL. C'est aussi, à mes yeux, une bonne
+illustration de l'utilité du monitoring et de la comparaison de modèles en
+production.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\includegraphics[width=0.98\linewidth]{app_tweet_sain.png}}
+  \caption{Le même message analysé par le moteur \textbf{avancé
+  (Transformers)} : verdict « TWEET SAIN » à 67,8\,\%. L'app explique
+  honnêtement pourquoi l'explication mot-à-mot n'est pas disponible pour ce
+  modèle contextuel.}
+  \label{fig:app-sain}
+\end{figure}
+
+\section{Lancer l'app en local}
+\begin{lstlisting}[style=sh]
+streamlit run app/streamlit_app.py    # ouvre http://localhost:8501
+\end{lstlisting}
+
+\section{Ce qui se passe dans le code}
+\begin{enumerate}
+  \item chargement (mis en cache) du vectoriseur et du modèle depuis \code{models/} ;
+  \item l'utilisateur saisit un tweet ;
+  \item on applique \emph{exactement le même} \code{clean\_text} qu'à
+        l'entraînement --- la cohérence entre entraînement et production est
+        absolument cruciale ;
+  \item \code{predict\_proba} renvoie la probabilité ; au-dessus de $0{,}5$
+        $\rightarrow$ « SUSPECT » ;
+  \item chaque prédiction est journalisée dans
+        \code{reports/prediction\_log.csv}, ce qui alimente le monitoring.
+\end{enumerate}
+
+\begin{lstlisting}[style=py]
+cleaned = clean_text(txt)                 # même nettoyage qu'à l'entraînement
+X = vec.transform([cleaned])
+proba = model.predict_proba(X)[0, 1]      # probabilité classe « suspect »
+pred = int(proba >= 0.5)
+\end{lstlisting}
+
+\begin{attention}
+Le modèle doit exister \emph{avant} de lancer l'app : fais \code{dvc repro} ou
+\code{dvc pull} d'abord. (Je me suis fait avoir la première fois.)
+\end{attention}
+
+% ---------------------------------------------------------------
+\chapter{Monitoring et détection de dérive}
+\label{chap:monitoring}
+
+Une seconde page apparaît dans la barre latérale de l'app :
+\textbf{Monitoring}. Elle suit en temps réel :
+\begin{itemize}
+  \item le nombre total de prédictions servies ;
+  \item la répartition suspect / non suspect et l'histogramme des probabilités prédites ;
+  \item le volume de prédictions dans le temps ;
+  \item une \textbf{alerte de dérive} (\emph{drift}).
+\end{itemize}
+
+Pour la voir se remplir : faire quelques prédictions dans la page principale,
+puis ouvrir la page Monitoring.
+
+\section{Qu'est-ce que la dérive (drift) ?}
+En production, les tweets d'aujourd'hui ne ressemblent pas forcément à ceux de
+l'entraînement : nouveaux sujets, nouvel argot, nouvelles formes d'arnaques. Si
+la distribution des entrées s'éloigne trop de celle d'entraînement, le modèle
+se dégrade --- et le pire, c'est qu'il le fait \emph{silencieusement}, sans
+message d'erreur.
+
+La page compare donc deux indicateurs à leur valeur d'entraînement :
+\begin{itemize}
+  \item la \textbf{longueur moyenne} des tweets entrants (référence
+        $\approx$ 73,7 caractères) ;
+  \item le \textbf{taux de « suspect » prédit} (référence $\approx$ 0,898).
+\end{itemize}
+Si l'écart dépasse un seuil (\textbf{30\,\%} sur la longueur, \textbf{20
+points} sur le taux), une alerte rouge recommande un \textbf{réentraînement}.
+
+\begin{enclair}
+Le monitoring est le « tableau de bord santé » du modèle une fois en service.
+Sans lui, on ne découvre qu'un modèle est devenu mauvais qu'après qu'il a causé
+des dégâts.
+\end{enclair}
+
+% ---------------------------------------------------------------
+\chapter{Déploiement cloud}
+\label{chap:cloud}
+
+J'ai documenté trois façons de mettre l'app en ligne (le détail est dans
+\code{DEPLOYMENT.md}), et j'en ai réalisé une de bout en bout.
+
+\section{Option A --- Docker (universel et reproductible)}
+Le \code{Dockerfile} décrit une image contenant Python, les dépendances et le
+code :
+\begin{lstlisting}[style=sh]
+docker build -t tweet-detector .            # construit l'image
+docker run -p 8501:8501 tweet-detector      # lance le conteneur -> http://localhost:8501
+\end{lstlisting}
+
+\begin{enclair}
+Docker emballe l'app et son environnement dans une « boîte » qui tourne
+identiquement sur n'importe quelle machine.
+\end{enclair}
+
+\section{Option B --- Streamlit Community Cloud (retenue)}
+C'est l'option que j'ai effectivement mise en \oe uvre : gratuite, sans serveur
+à gérer, et branchée directement sur GitHub.
+\begin{enumerate}
+  \item Pousser le dépôt sur GitHub
+        (\url{https://github.com/koalatif/detection-tweets-suspects}).
+  \item Aller sur \url{https://share.streamlit.io} $\rightarrow$ \emph{New app}.
+  \item Choisir le dépôt, la branche \code{main}, le fichier
+        \code{app/streamlit\_app.py}. Déployer.
+\end{enumerate}
+
+L'application est en ligne à l'adresse :
+\begin{center}
+\url{https://detection-tweets-suspects-bfmqjctabuevrlprb5vkwy.streamlit.app}
+\end{center}
+Elle est reconstruite automatiquement à chaque \code{git push} sur \code{main},
+ce qui boucle la chaîne CI/CD : les tests valident le code
+(chapitre~\ref{chap:cicd}), puis Streamlit Cloud redéploie la nouvelle version.
+
+\section{Option C --- Google Cloud Run (à partir du Docker)}
+\begin{lstlisting}[style=sh]
+gcloud run deploy tweet-detector --source . --port 8501 --allow-unauthenticated
+\end{lstlisting}
+
+Le guide \code{DEPLOYMENT.md} couvre aussi Hugging Face Spaces et tout
+hébergeur Docker (Render, Fly.io).
+
+% ---------------------------------------------------------------
+\chapter{CI/CD avec GitHub Actions}
+\label{chap:cicd}
+
+CI/CD = Intégration / Déploiement Continus. À chaque \code{git push}, un robot
+(GitHub Actions) vérifie automatiquement que le projet n'est pas cassé. Le
+workflow \code{.github/workflows/ci.yml} exécute :
+\begin{enumerate}
+  \item l'installation des dépendances ;
+  \item le lint (\code{flake8}) --- repère les erreurs de syntaxe ;
+  \item les tests (\code{pytest}) --- \textbf{8 tests unitaires et d'intégration} ;
+  \item une vérification du pipeline DVC.
+\end{enumerate}
+
+En local, avant de pousser :
+\begin{lstlisting}[style=sh]
+pytest tests -v
+# Sortie attendue : 8 passed
+\end{lstlisting}
+
+\begin{enclair}
+La CI/CD est un filet de sécurité : elle empêche de merger du code cassé. Si un
+changement casse un test, on le sait immédiatement, avant que le code ne parte
+en production.
+\end{enclair}
+
+% =====================================================================
+\part{Discussion, extensions et conclusion}
+% =====================================================================
+
+\chapter{Discussion}
+\label{chap:discussion}
+
+\textbf{Limites.} Il faut être honnête sur les scores : l'analyse exploratoire
+(nuages de mots, boîtes à moustaches) montre que les deux classes partagent un
+vocabulaire très proche. La frontière sémantique entre « suspect » et « non
+suspect » est faible dans ce jeu de données, et les métriques élevées sont en
+partie portées par le fort a priori majoritaire (89,8\,\%). C'est précisément
+pour cette raison que j'ai privilégié le \textbf{F1, l'AUC (0,953) et le rappel
+de la classe minoritaire} plutôt que la seule accuracy : l'AUC de 0,953
+confirme qu'il y a bien un signal réel dans le texte, au-delà de la simple
+prédiction majoritaire.
+
+\textbf{Difficultés rencontrées.} Si je devais en retenir trois : le
+déséquilibre des classes, qui a conditionné toutes les décisions ; le choix
+d'une stratégie de rééquilibrage adaptée à un espace TF-IDF creux (où SMOTE,
+contre-intuitivement, s'avère contre-productif) ; et l'industrialisation d'un
+pipeline vraiment reproductible avec DVC, qui demande de la rigueur sur les
+dépendances et les paramètres.
+
+\textbf{Perspectives.} Plusieurs pistes restent ouvertes : explorer plus à fond
+les représentations contextuelles (\textbf{Sentence-Transformers, BERT}), qui
+captent mieux la sémantique ; enrichir le nettoyage (gestion des emojis,
+lemmatisation) ; consolider le suivi d'expériences avec \textbf{MLflow} et la
+\textbf{CI/CD} ; et pousser plus loin le tableau de bord de monitoring. Ces
+extensions sont déjà amorcées, comme le décrit le chapitre suivant.
+
+% ---------------------------------------------------------------
+\chapter{Extensions bonus}
+\label{chap:bonus}
+
+Au-delà du périmètre demandé par le sujet, j'ai mis en place plusieurs
+extensions :
+
+\begin{itemize}
+  \item \textbf{MLflow} --- suivi d'expériences en complément de DVC : le script
+        \code{src/train\_mlflow.py} journalise paramètres, métriques et modèles des
+        cinq algorithmes (backend SQLite), visualisables via \code{mlflow ui}
+        (chapitre~\ref{chap:mlflow}).
+  \item \textbf{CI/CD (GitHub Actions)} --- le workflow
+        \code{.github/workflows/ci.yml} installe les dépendances, exécute le lint
+        (flake8) et la suite de tests pytest (8 tests unitaires et d'intégration),
+        et vérifie le pipeline DVC à chaque push (chapitre~\ref{chap:cicd}).
+  \item \textbf{Déploiement cloud} --- un \code{Dockerfile}, une configuration
+        Streamlit et un guide \code{DEPLOYMENT.md} permettent un déploiement sur
+        Streamlit Community Cloud, Hugging Face Spaces ou tout hébergeur Docker
+        (Cloud Run, Render, Fly.io) (chapitre~\ref{chap:cloud}).
+  \item \textbf{Dashboard de monitoring} --- une seconde page Streamlit suit en
+        temps réel le volume de prédictions, la distribution des classes et des
+        probabilités, et signale toute dérive (\emph{drift}) par rapport aux
+        statistiques d'entraînement (chapitre~\ref{chap:monitoring}).
+  \item \textbf{Transformers avancés (Sentence-BERT)} --- le script
+        \code{src/train\_bert.py} encode les tweets avec un modèle
+        \code{all-MiniLM-L6-v2} et entraîne un classifieur sur ces embeddings
+        sémantiques, en alternative à TF-IDF. Ce moteur est désormais \textbf{pleinement intégré au pipeline DVC} (via l'étape \code{train\_bert}), son entraînement est automatisé, et ses performances sont ajoutées au tableau de comparaison global de façon autonome. Il est sélectionnable
+        directement dans l'application déployée (« Avancé (Transformers) »).
+  \item \textbf{Application déployée en production} --- l'app est publiquement
+        accessible sur Streamlit Community Cloud
+        (\url{https://detection-tweets-suspects-bfmqjctabuevrlprb5vkwy.streamlit.app}),
+        redéployée automatiquement à chaque push sur \code{main}.
+  \item \textbf{IA explicable} --- pour le moteur TF-IDF + Régression
+        Logistique, l'app affiche le « Raisonnement de l'IA » : le top des mots
+        ayant influencé chaque décision (contributions positives et négatives),
+        ainsi que le détail du pipeline NLP (texte brut $\rightarrow$ texte
+        nettoyé). La prédiction devient ainsi auditable par un humain (cf.\
+        figures~\ref{fig:app-suspect} et~\ref{fig:app-sain}).
+\end{itemize}
+
+% ---------------------------------------------------------------
+\chapter{Conclusion}
+
+Ce projet m'a permis de mettre en \oe uvre l'intégralité du cycle de vie d'une
+solution de Machine Learning, et pas seulement la partie modélisation :
+exploration et prétraitement du texte, représentation TF-IDF, gestion du
+déséquilibre, comparaison de cinq modèles, optimisation par GridSearch,
+évaluation complète (\textbf{F1 = 0,988 ; AUC = 0,953}), déploiement Streamlit
+effectif en production (application publique, avec double moteur
+TF-IDF~/~Transformers et explication des décisions), et un pipeline entièrement
+reproductible avec Git et DVC depuis le dépôt public
+\url{https://github.com/koalatif/detection-tweets-suspects}.
+
+Au-delà des scores, ce que je retiens surtout, c'est la partie
+industrialisation : DVC, MLflow, la CI/CD, Docker et le monitoring de dérive
+transforment un notebook d'expérimentation en un projet qu'un collègue peut
+reprendre, reproduire et faire évoluer. C'est cette dimension MLOps qui, à mon
+sens, donne sa vraie valeur à l'ensemble.
+
+\textbf{Ordre de lecture conseillé pour l'oral :} organisation du projet
+(chap.~1) $\rightarrow$ fil rouge (chap.~3) $\rightarrow$ concepts ML
+(chap.~5) $\rightarrow$ DVC (chap.~11) $\rightarrow$ monitoring (chap.~14).
+
+% =====================================================================
+\appendix
+% =====================================================================
+
+\chapter{Dépannage (FAQ)}
+\label{annexe:faq}
+
+Cette annexe regroupe les problèmes que j'ai réellement rencontrés (ou
+anticipés) pendant le projet, avec leur solution.
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{4.2cm} >{\raggedright\arraybackslash}p{4.2cm} X}
+\toprule
+\textbf{Symptôme} & \textbf{Cause probable} & \textbf{Solution} \\
+\midrule
+\code{ModuleNotFoundError} & environnement non activé / dépendances manquantes &
+\code{source .venv/bin/activate} puis \code{pip install -r requirements.txt} \\
+\addlinespace
+Streamlit : \code{model not found} & modèle non généré & \code{dvc repro} ou \code{dvc pull} \\
+\addlinespace
+\code{dvc pull} ne fait rien & données déjà présentes localement & c'est normal \\
+\addlinespace
+Port 8501 occupé & une autre app tourne &
+\code{streamlit run app/streamlit\_app.py --server.port 8502} \\
+\addlinespace
+\code{git status} liste des fichiers modifiés sans raison &
+montage réseau (différences de permissions uniquement, 0 insertion/suppression) &
+disparaît sur disque local ; contenu identique au commit \\
+\addlinespace
+MLflow : erreur \emph{file store} & version récente de MLflow &
+utiliser \code{--backend-store-uri sqlite:///mlflow.db} \\
+\addlinespace
+Téléchargement NLTK échoue / nuages de mots hors-ligne & pas de réseau &
+inutile : la liste de stop words est embarquée, aucun téléchargement requis \\
+\bottomrule
+\end{tabularx}
+\caption{Problèmes fréquents et solutions.}
+\end{table}
+
+\chapter{Glossaire}
+\label{annexe:glossaire}
+
+\begin{description}[style=nextline,itemsep=3pt]
+  \item[Classification binaire] prédire une étiquette parmi deux (ici 0 ou 1).
+  \item[TF-IDF] méthode qui transforme un texte en vecteur de nombres pondérés.
+  \item[n-gramme] séquence de $n$ mots consécutifs (unigramme = 1 mot, bigramme = 2 mots).
+  \item[Stop words] mots très fréquents et peu informatifs (\emph{the, and, of}\ldots).
+  \item[Stemming] réduction d'un mot à sa racine (\emph{updating} $\rightarrow$ \emph{updat}).
+  \item[Class weights] pondération qui rend les erreurs sur la classe rare plus coûteuses.
+  \item[SMOTE] génération d'exemples synthétiques de la classe minoritaire.
+  \item[Overfitting (sur-apprentissage)] le modèle mémorise le train et généralise mal.
+  \item[Precision / Recall / F1] métriques d'évaluation d'un classifieur (cf.\ chap.~5).
+  \item[ROC-AUC] aire sous la courbe ROC ; mesure la qualité du classement (0,5 = hasard).
+  \item[Validation croisée] évaluation moyennée sur plusieurs découpages du train.
+  \item[GridSearch] recherche exhaustive du meilleur jeu d'hyperparamètres.
+  \item[DVC] outil de versionnement des données et d'orchestration de pipeline.
+  \item[Pipeline] suite d'étapes automatisées (preprocess $\rightarrow$ featurize $\rightarrow$ train $\rightarrow$ evaluate).
+  \item[Remote (DVC)] stockage distant des données/modèles (local, Drive, S3\ldots).
+  \item[MLflow] outil de suivi d'expériences (paramètres, métriques, modèles).
+  \item[Data leakage (fuite)] information du test qui contamine l'entraînement, gonflant les scores.
+  \item[Drift (dérive)] évolution des données en production qui dégrade le modèle.
+  \item[CI/CD] automatisation des tests/déploiements à chaque changement de code.
+\end{description}
+
+\chapter{Checklist express}
+\label{annexe:checklist}
+
+\begin{lstlisting}[style=sh]
+# 1. Environnement
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+
+# 2. Données + pipeline
+dvc pull            # récupère données et modèles
+dvc repro           # reconstruit tout le pipeline
+dvc metrics show    # affiche les métriques
+
+# 3. Qualité
+pytest tests -v     # 8 tests doivent passer
+
+# 4. Suivi d'expériences (optionnel)
+python src/train_mlflow.py
+mlflow ui --backend-store-uri sqlite:///mlflow.db
+
+# 5. Application + monitoring
+streamlit run app/streamlit_app.py
+
+# 6. Déploiement Docker (optionnel)
+docker build -t tweet-detector . && docker run -p 8501:8501 tweet-detector
+\end{lstlisting}
+
+Bon montage et bonne présentation !
+
+\end{document}
