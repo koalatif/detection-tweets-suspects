@@ -1,3 +1,4 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
 # Dépendances du projet — Détection de tweets suspects
 # Recommandé : Python 3.11 (wheels disponibles pour tous les paquets ci-dessous).
 # Versions épinglées = résultats reproductibles.
