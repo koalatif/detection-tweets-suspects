@@ -15,4 +15,6 @@ jobs:
       - name: Push to hub
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: git push --force https://valatif:$HF_TOKEN@huggingface.co/spaces/valatif/Detection-Tweets-Suspects main
+        run: |
+          git remote add space https://valatif:$HF_TOKEN@huggingface.co/spaces/valatif/Detection-Tweets-Suspects
+          git push --force space main
