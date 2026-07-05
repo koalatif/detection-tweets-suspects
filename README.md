@@ -1,3 +1,12 @@
+---
+title: Detection Tweets Suspects
+emoji: 🐦
+colorFrom: blue
+colorTo: red
+sdk: streamlit
+app_file: app/streamlit_app.py
+pinned: false
+---
 # 🐦 Détection de Tweets Suspects
 
 Solution complète de **classification automatique de tweets suspects**, couvrant tout le
