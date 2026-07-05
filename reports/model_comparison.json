@@ -63,6 +63,6 @@
     "roc_auc": 0.8735,
     "cv_f1_mean": null,
     "cv_f1_std": null,
-    "train_time_s": 0.4
+    "train_time_s": 0.5
   }
 ]
